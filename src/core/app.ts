@@ -5,6 +5,7 @@
 
 import type { HTTPMethod } from '../types/http.js';
 import type {
+  Context,
   Handler,
   MiddlewareHandler,
   Next,
@@ -16,7 +17,7 @@ import { HTTPException } from './errors.js';
 import { serve, type NodeServerOptions } from './node-adapter.js';
 
 type AnyHandler = (
-  c: FrootContext<string, Variables>
+  c: Context<string, Variables>
 ) => Promise<Response | unknown> | Response | unknown;
 
 type RouteRegistration = {
@@ -150,7 +151,13 @@ export class Froot<TVars extends Variables = Variables> {
     for (const route of subApp.registeredRoutes) {
       const subPath = route.path.startsWith('/') ? route.path : `/${route.path}`;
       const fullPath = `${cleanPrefix}${subPath === '/' ? '' : subPath}`;
-      this.on(route.method, fullPath, ...route.middleware, route.handler);
+      this.registeredRoutes.push({
+        method: route.method,
+        path: fullPath,
+        handler: route.handler,
+        middleware: route.middleware
+      });
+      this.router.add(route.method, fullPath, route.handler, route.middleware);
     }
     return this;
   }

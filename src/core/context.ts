@@ -4,9 +4,15 @@
  */
 
 import type { StatusCode } from '../types/http.js';
-import type { ExtractParamNames, RouteParams, Variables } from '../types/index.js';
+import type {
+  Context,
+  ExtractParamNames,
+  RequestContext,
+  RouteParams,
+  Variables
+} from '../types/index.js';
 
-export class FrootRequest<TPath extends string = string> {
+export class FrootRequest<TPath extends string = string> implements RequestContext<TPath> {
   public readonly raw: Request;
   public readonly params: RouteParams<TPath>;
   private _queryCache: Record<string, string | undefined> | undefined = undefined;
@@ -110,7 +116,7 @@ export class FrootRequest<TPath extends string = string> {
 export class FrootContext<
   TPath extends string = string,
   TVars extends Variables = Variables
-> {
+> implements Context<TPath, TVars> {
   // Fixed property order to stabilize V8 hidden class (Map)
   public readonly req: FrootRequest<TPath>;
   public readonly rawRequest: Request;

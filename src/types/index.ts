@@ -3,8 +3,7 @@
  * Provides compile-time route parameter extraction, type-safe handlers, and RPC metadata.
  */
 
-import type { HTTPMethod } from './http.js';
-import type { FrootContext } from '../core/context.js';
+import type { HTTPMethod, StatusCode } from './http.js';
 
 /**
  * Extracts route parameter names from a path template using template literal types.
@@ -36,13 +35,79 @@ export type Variables = Record<string, unknown>;
 export type Next = () => Promise<void>;
 
 /**
+ * Structural interface for the request abstraction in Froot.
+ */
+export interface RequestContext<TPath extends string = string> {
+  readonly raw: Request;
+  readonly params: RouteParams<TPath>;
+  readonly url: string;
+  readonly method: string;
+  readonly parsedUrl: URL;
+  readonly path: string;
+  param<K extends ExtractParamNames<TPath>>(name: K): string;
+  param(name: string): string | undefined;
+  query(key?: string): string | undefined | Record<string, string | undefined>;
+  header(name: string): string | undefined;
+  readonly headers: Record<string, string | undefined>;
+  json<T = unknown>(): Promise<T>;
+  text(): Promise<string>;
+  arrayBuffer(): Promise<ArrayBuffer>;
+  formData(): Promise<FormData>;
+}
+
+/**
+ * Structural interface for the context object passed to middleware and handlers.
+ * Decoupled from the concrete FrootContext class to prevent circular type dependencies.
+ */
+export interface Context<
+  TPath extends string = string,
+  TVars extends Variables = Variables
+> {
+  readonly req: RequestContext<TPath>;
+  readonly rawRequest: Request;
+  readonly responseHeaders: Headers;
+  statusCode: StatusCode;
+  readonly params: RouteParams<TPath>;
+  param<K extends ExtractParamNames<TPath>>(name: K): string;
+  param(name: string): string | undefined;
+  query(key?: string): string | undefined | Record<string, string | undefined>;
+  header(name: string, value?: string): string | undefined | this;
+  status(code: StatusCode): this;
+  get<K extends keyof TVars>(key: K): TVars[K];
+  set<K extends string, V>(
+    key: K,
+    value: V
+  ): Context<TPath, TVars & { [P in K]: V }>;
+  json<T>(data: T, status?: StatusCode, headers?: HeadersInit): Response;
+  text(text: string, status?: StatusCode, headers?: HeadersInit): Response;
+  html(html: string, status?: StatusCode, headers?: HeadersInit): Response;
+  stream(
+    stream: ReadableStream,
+    status?: StatusCode,
+    headers?: HeadersInit
+  ): Response;
+  streamSSE(
+    generator: (send: (data: { event?: string; data: string | object; id?: string }) => void) => Promise<void> | void,
+    headers?: HeadersInit
+  ): Response;
+}
+
+/**
+ * Type alias for backward compatibility.
+ */
+export type FrootContext<
+  TPath extends string = string,
+  TVars extends Variables = Variables
+> = Context<TPath, TVars>;
+
+/**
  * Middleware handler definition.
  */
 export type MiddlewareHandler<
   TPath extends string = string,
   TVars extends Variables = Variables
 > = (
-  c: FrootContext<TPath, TVars>,
+  c: Context<TPath, TVars>,
   next: Next
 ) => Promise<Response | void> | Response | void;
 
@@ -54,7 +119,7 @@ export type Handler<
   TVars extends Variables = Variables,
   TOutput = unknown
 > = (
-  c: FrootContext<TPath, TVars>
+  c: Context<TPath, TVars>
 ) => Promise<Response | TOutput> | Response | TOutput;
 
 /**
