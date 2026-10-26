@@ -96,7 +96,17 @@ export class Froot<TVars extends Variables = Variables> {
   public on<P extends string>(
     method: HTTPMethod,
     path: P,
+    handler: Handler<P, TVars>
+  ): this;
+  public on<P extends string>(
+    method: HTTPMethod,
+    path: P,
     ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]
+  ): this;
+  public on<P extends string>(
+    method: HTTPMethod,
+    path: P,
+    ...handlers: (MiddlewareHandler | Handler<P, TVars>)[]
   ): this {
     const handler = handlers[handlers.length - 1] as Handler<P, TVars>;
     const middleware = handlers.slice(0, -1) as MiddlewareHandler[];
@@ -107,39 +117,34 @@ export class Froot<TVars extends Variables = Variables> {
     return this;
   }
 
-  public get<P extends string>(
-    path: P,
-    ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]
-  ): this {
-    return this.on('GET', path, ...handlers);
+  public get<P extends string>(path: P, handler: Handler<P, TVars>): this;
+  public get<P extends string>(path: P, ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]): this;
+  public get<P extends string>(path: P, ...handlers: (MiddlewareHandler | Handler<P, TVars>)[]): this {
+    return this.on('GET', path, ...(handlers as [Handler<P, TVars>]));
   }
 
-  public post<P extends string>(
-    path: P,
-    ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]
-  ): this {
-    return this.on('POST', path, ...handlers);
+  public post<P extends string>(path: P, handler: Handler<P, TVars>): this;
+  public post<P extends string>(path: P, ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]): this;
+  public post<P extends string>(path: P, ...handlers: (MiddlewareHandler | Handler<P, TVars>)[]): this {
+    return this.on('POST', path, ...(handlers as [Handler<P, TVars>]));
   }
 
-  public put<P extends string>(
-    path: P,
-    ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]
-  ): this {
-    return this.on('PUT', path, ...handlers);
+  public put<P extends string>(path: P, handler: Handler<P, TVars>): this;
+  public put<P extends string>(path: P, ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]): this;
+  public put<P extends string>(path: P, ...handlers: (MiddlewareHandler | Handler<P, TVars>)[]): this {
+    return this.on('PUT', path, ...(handlers as [Handler<P, TVars>]));
   }
 
-  public delete<P extends string>(
-    path: P,
-    ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]
-  ): this {
-    return this.on('DELETE', path, ...handlers);
+  public delete<P extends string>(path: P, handler: Handler<P, TVars>): this;
+  public delete<P extends string>(path: P, ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]): this;
+  public delete<P extends string>(path: P, ...handlers: (MiddlewareHandler | Handler<P, TVars>)[]): this {
+    return this.on('DELETE', path, ...(handlers as [Handler<P, TVars>]));
   }
 
-  public patch<P extends string>(
-    path: P,
-    ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]
-  ): this {
-    return this.on('PATCH', path, ...handlers);
+  public patch<P extends string>(path: P, handler: Handler<P, TVars>): this;
+  public patch<P extends string>(path: P, ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]): this;
+  public patch<P extends string>(path: P, ...handlers: (MiddlewareHandler | Handler<P, TVars>)[]): this {
+    return this.on('PATCH', path, ...(handlers as [Handler<P, TVars>]));
   }
 
   /**

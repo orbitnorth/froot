@@ -98,9 +98,10 @@ function createProxy(
   });
 }
 
-export type ClientProxy = {
-  [key: string]: ClientProxy & ((options?: ClientRequestOptions) => ClientResponse);
-};
+export interface ClientProxy {
+  (options?: ClientRequestOptions): ClientResponse;
+  [key: string]: ClientProxy;
+}
 
 export function createFrootClient<_TApp = unknown>(options: ClientOptions = {}): ClientProxy {
   const baseUrl = options.baseUrl ?? 'http://localhost:3000';
