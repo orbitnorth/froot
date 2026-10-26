@@ -14,6 +14,22 @@ export default tsPlugin.config(
     }
   },
   {
+    files: ['web/**/*.js'],
+    languageOptions: {
+      globals: {
+        window: 'readonly',
+        document: 'readonly',
+        navigator: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        console: 'readonly'
+      }
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off'
+    }
+  },
+  {
     ignores: ['dist/**', 'node_modules/**']
   }
 );
