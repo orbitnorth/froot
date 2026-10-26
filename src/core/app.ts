@@ -44,6 +44,18 @@ function matchesPrefix(pathname: string, prefix?: string): boolean {
   return pathname === p || pathname.startsWith(p + '/');
 }
 
+function extractPathname(url: string): string {
+  const protocolEnd = url.indexOf('://');
+  const pathStart = protocolEnd === -1 ? url.indexOf('/') : url.indexOf('/', protocolEnd + 3);
+  if (pathStart === -1) return '/';
+  const queryStart = url.indexOf('?', pathStart);
+  if (queryStart === -1) {
+    const hashStart = url.indexOf('#', pathStart);
+    return hashStart === -1 ? url.slice(pathStart) : url.slice(pathStart, hashStart);
+  }
+  return url.slice(pathStart, queryStart);
+}
+
 export class Froot<TEnv extends Env = BlankEnv> {
   private router = new SmartRouter<AnyHandler>();
   private globalMiddleware: Array<{ prefix?: string; handler: MiddlewareHandler<string, TEnv> }> = [];
@@ -224,8 +236,7 @@ export class Froot<TEnv extends Env = BlankEnv> {
     env?: unknown,
     executionCtx?: unknown
   ): Promise<Response> => {
-    const url = new URL(request.url);
-    const pathname = url.pathname;
+    const pathname = extractPathname(request.url);
     const method = request.method as HTTPMethod;
 
     // 1. Match route
@@ -237,6 +248,34 @@ export class Froot<TEnv extends Env = BlankEnv> {
       env,
       executionCtx
     );
+
+    // Fast-path: When no middleware is present, avoid pipeline and closure allocations
+    if (this.globalMiddleware.length === 0 && (!match || match.middleware.length === 0)) {
+      if (!match) {
+        return this.notFoundHandler(c);
+      }
+      try {
+        const result = await match.handler(c);
+        let res: Response;
+        if (result instanceof Response) {
+          res = result;
+        } else if (typeof result === 'object' && result !== null) {
+          res = c.json(result);
+        } else if (typeof result === 'string') {
+          res = c.text(result);
+        } else {
+          const internalRes = (c as unknown as { _res?: Response })._res;
+          res = internalRes ?? c.text('', c.statusCode);
+        }
+
+        c.responseHeaders.forEach((val, key) => {
+          res.headers.set(key, val);
+        });
+        return res;
+      } catch (err) {
+        return await this.errorHandler(err, c);
+      }
+    }
 
     // 2. Assemble Onion Pipeline: applicable global middleware + route middleware + final handler
     const pipeline: Array<(ctx: Context<string, TEnv>, next: Next) => Promise<Response | void> | Response | void> = [];

@@ -222,22 +222,31 @@ export class FrootContext<
    */
   public json<T>(data: T, status?: StatusCode, headers?: HeadersInit): Response {
     const code = status ?? this.statusCode;
-    const resHeaders = new Headers(this.responseHeaders);
-
-    if (headers) {
-      new Headers(headers).forEach((v: string, k: string) => resHeaders.set(k, v));
-    }
-
     const isNoContent = code === 204 || code === 205 || code === 304;
 
-    if (!isNoContent && !resHeaders.has('content-type')) {
-      resHeaders.set('content-type', 'application/json; charset=utf-8');
+    if (!isNoContent && !this.responseHeaders.has('content-type')) {
+      this.responseHeaders.set('content-type', 'application/json; charset=utf-8');
     }
 
-    this._res = new Response(isNoContent ? null : JSON.stringify(data), {
+    if (headers) {
+      if (headers instanceof Headers) {
+        headers.forEach((v: string, k: string) => this.responseHeaders.set(k, v));
+      } else if (Array.isArray(headers)) {
+        for (const [k, v] of headers) this.responseHeaders.set(k, v);
+      } else {
+        for (const k in headers) {
+          const v = (headers as Record<string, string>)[k];
+          if (v !== undefined) this.responseHeaders.set(k, v);
+        }
+      }
+    }
+
+    const bodyStr = isNoContent ? null : JSON.stringify(data);
+    this._res = new Response(bodyStr, {
       status: code,
-      headers: resHeaders
+      headers: this.responseHeaders
     });
+    (this._res as unknown as { _rawBody?: string | null })._rawBody = bodyStr;
 
     return this._res;
   }
@@ -247,22 +256,31 @@ export class FrootContext<
    */
   public text(text: string, status?: StatusCode, headers?: HeadersInit): Response {
     const code = status ?? this.statusCode;
-    const resHeaders = new Headers(this.responseHeaders);
-
-    if (headers) {
-      new Headers(headers).forEach((v: string, k: string) => resHeaders.set(k, v));
-    }
-
     const isNoContent = code === 204 || code === 205 || code === 304;
 
-    if (!isNoContent && !resHeaders.has('content-type')) {
-      resHeaders.set('content-type', 'text/plain; charset=utf-8');
+    if (!isNoContent && !this.responseHeaders.has('content-type')) {
+      this.responseHeaders.set('content-type', 'text/plain; charset=utf-8');
     }
 
-    this._res = new Response(isNoContent ? null : text, {
+    if (headers) {
+      if (headers instanceof Headers) {
+        headers.forEach((v: string, k: string) => this.responseHeaders.set(k, v));
+      } else if (Array.isArray(headers)) {
+        for (const [k, v] of headers) this.responseHeaders.set(k, v);
+      } else {
+        for (const k in headers) {
+          const v = (headers as Record<string, string>)[k];
+          if (v !== undefined) this.responseHeaders.set(k, v);
+        }
+      }
+    }
+
+    const bodyStr = isNoContent ? null : text;
+    this._res = new Response(bodyStr, {
       status: code,
-      headers: resHeaders
+      headers: this.responseHeaders
     });
+    (this._res as unknown as { _rawBody?: string | null })._rawBody = bodyStr;
 
     return this._res;
   }
@@ -272,22 +290,31 @@ export class FrootContext<
    */
   public html(html: string, status?: StatusCode, headers?: HeadersInit): Response {
     const code = status ?? this.statusCode;
-    const resHeaders = new Headers(this.responseHeaders);
-
-    if (headers) {
-      new Headers(headers).forEach((v: string, k: string) => resHeaders.set(k, v));
-    }
-
     const isNoContent = code === 204 || code === 205 || code === 304;
 
-    if (!isNoContent && !resHeaders.has('content-type')) {
-      resHeaders.set('content-type', 'text/html; charset=utf-8');
+    if (!isNoContent && !this.responseHeaders.has('content-type')) {
+      this.responseHeaders.set('content-type', 'text/html; charset=utf-8');
     }
 
-    this._res = new Response(isNoContent ? null : html, {
+    if (headers) {
+      if (headers instanceof Headers) {
+        headers.forEach((v: string, k: string) => this.responseHeaders.set(k, v));
+      } else if (Array.isArray(headers)) {
+        for (const [k, v] of headers) this.responseHeaders.set(k, v);
+      } else {
+        for (const k in headers) {
+          const v = (headers as Record<string, string>)[k];
+          if (v !== undefined) this.responseHeaders.set(k, v);
+        }
+      }
+    }
+
+    const bodyStr = isNoContent ? null : html;
+    this._res = new Response(bodyStr, {
       status: code,
-      headers: resHeaders
+      headers: this.responseHeaders
     });
+    (this._res as unknown as { _rawBody?: string | null })._rawBody = bodyStr;
 
     return this._res;
   }

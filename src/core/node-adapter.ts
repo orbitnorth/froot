@@ -41,7 +41,8 @@ export function serve(app: FetchableApp, options: NodeServerOptions = {}): http.
       const hasBody = method !== 'GET' && method !== 'HEAD';
 
       const headers = new Headers();
-      for (const [k, v] of Object.entries(req.headers)) {
+      for (const k in req.headers) {
+        const v = req.headers[k];
         if (v === undefined) continue;
         if (Array.isArray(v)) {
           for (const item of v) headers.append(k, item);
@@ -50,14 +51,20 @@ export function serve(app: FetchableApp, options: NodeServerOptions = {}): http.
         }
       }
 
-      const requestInit: RequestInit & { duplex?: 'half' } = {
+      let body: BodyInit | null = null;
+      if (hasBody) {
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) {
+          chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+        }
+        body = (chunks.length === 1 ? chunks[0]! : (chunks.length > 0 ? Buffer.concat(chunks) : null)) as unknown as BodyInit | null;
+      }
+
+      const webReq = new Request(url, {
         method,
         headers,
-        body: hasBody ? (Readable.toWeb(req) as unknown as BodyInit) : null,
-        ...(hasBody ? { duplex: 'half' } : {})
-      };
-
-      const webReq = new Request(url, requestInit);
+        body
+      });
 
       // Dispatch to Froot application
       const webRes = await app.fetch(webReq);
@@ -68,6 +75,13 @@ export function serve(app: FetchableApp, options: NodeServerOptions = {}): http.
       webRes.headers.forEach((val: string, key: string) => {
         res.setHeader(key, val);
       });
+
+      // Fast-path: direct string body (bypasses Web Streams pipe)
+      const rawBody = (webRes as unknown as { _rawBody?: string | null })._rawBody;
+      if (rawBody !== undefined) {
+        res.end(rawBody ?? undefined);
+        return;
+      }
 
       if (!webRes.body) {
         res.end();
