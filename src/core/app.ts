@@ -28,6 +28,22 @@ type RouteRegistration = {
   middleware: MiddlewareHandler[];
 };
 
+function matchesPrefix(pathname: string, prefix?: string): boolean {
+  if (!prefix || prefix === '*' || prefix === '/*') {
+    return true;
+  }
+  let p = prefix;
+  if (p.endsWith('/*')) {
+    p = p.slice(0, -2);
+    return pathname === p || pathname.startsWith(p + '/');
+  }
+  if (p.endsWith('*')) {
+    p = p.slice(0, -1);
+    return pathname.startsWith(p);
+  }
+  return pathname === p || pathname.startsWith(p + '/');
+}
+
 export class Froot<TEnv extends Env = BlankEnv> {
   private router = new SmartRouter<AnyHandler>();
   private globalMiddleware: Array<{ prefix?: string; handler: MiddlewareHandler<string, TEnv> }> = [];
@@ -185,6 +201,13 @@ export class Froot<TEnv extends Env = BlankEnv> {
   }
 
   /**
+   * Alias for notFound to match onError convention.
+   */
+  public onNotFound(handler: (c: Context<string, TEnv>) => Response | Promise<Response>): this {
+    return this.notFound(handler);
+  }
+
+  /**
    * Compiles routes for maximum execution speed.
    */
   public compile(): this {
@@ -208,12 +231,12 @@ export class Froot<TEnv extends Env = BlankEnv> {
     // 1. Match route
     const match = this.router.match(method, pathname);
 
-    if (!match) {
-      const c = new FrootContext<string, TEnv>(request, {}, env, executionCtx);
-      return this.notFoundHandler(c);
-    }
-
-    const c = new FrootContext<string, TEnv>(request, match.params, env, executionCtx);
+    const c = new FrootContext<string, TEnv>(
+      request,
+      match ? match.params : {},
+      env,
+      executionCtx
+    );
 
     // 2. Assemble Onion Pipeline: applicable global middleware + route middleware + final handler
     const pipeline: Array<(ctx: Context<string, TEnv>, next: Next) => Promise<Response | void> | Response | void> = [];
@@ -221,30 +244,36 @@ export class Froot<TEnv extends Env = BlankEnv> {
     for (let i = 0; i < this.globalMiddleware.length; i++) {
       const m = this.globalMiddleware[i];
       if (!m) continue;
-      if (!m.prefix || pathname.startsWith(m.prefix)) {
+      if (matchesPrefix(pathname, m.prefix)) {
         pipeline.push(m.handler);
       }
     }
 
-    for (let i = 0; i < match.middleware.length; i++) {
-      const m = match.middleware[i];
-      if (m) pipeline.push(m as MiddlewareHandler<string, TEnv>);
-    }
+    if (match) {
+      for (let i = 0; i < match.middleware.length; i++) {
+        const m = match.middleware[i];
+        if (m) pipeline.push(m as MiddlewareHandler<string, TEnv>);
+      }
 
-    // Wrap handler as terminal pipeline step
-    pipeline.push(async (ctx) => {
-      const result = await match.handler(ctx);
-      if (result instanceof Response) {
-        return result;
-      }
-      if (typeof result === 'object' && result !== null) {
-        return ctx.json(result);
-      }
-      if (typeof result === 'string') {
-        return ctx.text(result);
-      }
-      return undefined;
-    });
+      // Wrap handler as terminal pipeline step
+      pipeline.push(async (ctx) => {
+        const result = await match.handler(ctx);
+        if (result instanceof Response) {
+          return result;
+        }
+        if (typeof result === 'object' && result !== null) {
+          return ctx.json(result);
+        }
+        if (typeof result === 'string') {
+          return ctx.text(result);
+        }
+        return undefined;
+      });
+    } else {
+      pipeline.push(async (ctx) => {
+        return this.notFoundHandler(ctx);
+      });
+    }
 
     // 3. Execute Async Onion Pipeline
     try {
@@ -258,20 +287,26 @@ export class Froot<TEnv extends Env = BlankEnv> {
 
         const fn = pipeline[i];
         if (!fn) {
-          // If pipeline finished without explicit response, check if context has headers/status
-          return c.text('', c.statusCode);
+          const internalRes = (c as unknown as { _res?: Response })._res;
+          return internalRes ?? c.text('', c.statusCode);
         }
 
         const res = await fn(c, async () => {
           await dispatch(i + 1);
         });
         if (res instanceof Response) {
-          return res;
+          (c as unknown as { _res?: Response })._res = res;
         }
 
-        // Return next response if unwinding
         const internalRes = (c as unknown as { _res?: Response })._res;
-        return internalRes ?? c.text('', c.statusCode);
+        const finalRes = internalRes ?? c.text('', c.statusCode);
+
+        // Synchronize headers from context onto response
+        c.responseHeaders.forEach((val, key) => {
+          finalRes.headers.set(key, val);
+        });
+
+        return finalRes;
       };
 
       return await dispatch(0);

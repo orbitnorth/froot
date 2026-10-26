@@ -8,6 +8,7 @@ export interface SecurityOptions {
   contentSecurityPolicy?: string | false;
   xFrameOptions?: 'DENY' | 'SAMEORIGIN' | false;
   xContentTypeOptions?: boolean;
+  xXssProtection?: string | false;
   referrerPolicy?: string | false;
   strictTransportSecurity?: string | false;
   crossOriginOpenerPolicy?: string | false;
@@ -25,6 +26,11 @@ export function security(options: SecurityOptions = {}): MiddlewareHandler {
       : options.xFrameOptions ?? 'SAMEORIGIN';
 
   const xcto = options.xContentTypeOptions ?? true;
+
+  const xxss =
+    options.xXssProtection === false
+      ? null
+      : options.xXssProtection ?? '0';
 
   const referrer =
     options.referrerPolicy === false
@@ -45,6 +51,7 @@ export function security(options: SecurityOptions = {}): MiddlewareHandler {
     if (csp) c.header('content-security-policy', csp);
     if (xfo) c.header('x-frame-options', xfo);
     if (xcto) c.header('x-content-type-options', 'nosniff');
+    if (xxss) c.header('x-xss-protection', xxss);
     if (referrer) c.header('referrer-policy', referrer);
     if (hsts) c.header('strict-transport-security', hsts);
     if (coop) c.header('cross-origin-opener-policy', coop);

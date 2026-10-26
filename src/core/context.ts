@@ -228,11 +228,13 @@ export class FrootContext<
       new Headers(headers).forEach((v: string, k: string) => resHeaders.set(k, v));
     }
 
-    if (!resHeaders.has('content-type')) {
+    const isNoContent = code === 204 || code === 205 || code === 304;
+
+    if (!isNoContent && !resHeaders.has('content-type')) {
       resHeaders.set('content-type', 'application/json; charset=utf-8');
     }
 
-    this._res = new Response(JSON.stringify(data), {
+    this._res = new Response(isNoContent ? null : JSON.stringify(data), {
       status: code,
       headers: resHeaders
     });
@@ -251,11 +253,13 @@ export class FrootContext<
       new Headers(headers).forEach((v: string, k: string) => resHeaders.set(k, v));
     }
 
-    if (!resHeaders.has('content-type')) {
+    const isNoContent = code === 204 || code === 205 || code === 304;
+
+    if (!isNoContent && !resHeaders.has('content-type')) {
       resHeaders.set('content-type', 'text/plain; charset=utf-8');
     }
 
-    this._res = new Response(text, {
+    this._res = new Response(isNoContent ? null : text, {
       status: code,
       headers: resHeaders
     });
@@ -274,11 +278,13 @@ export class FrootContext<
       new Headers(headers).forEach((v: string, k: string) => resHeaders.set(k, v));
     }
 
-    if (!resHeaders.has('content-type')) {
+    const isNoContent = code === 204 || code === 205 || code === 304;
+
+    if (!isNoContent && !resHeaders.has('content-type')) {
       resHeaders.set('content-type', 'text/html; charset=utf-8');
     }
 
-    this._res = new Response(html, {
+    this._res = new Response(isNoContent ? null : html, {
       status: code,
       headers: resHeaders
     });

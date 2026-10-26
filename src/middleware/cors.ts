@@ -7,6 +7,7 @@ import type { MiddlewareHandler } from '../types/index.js';
 export interface CorsOptions {
   origin?: string | string[] | ((origin: string) => boolean | string);
   methods?: string[];
+  allowMethods?: string[];
   allowHeaders?: string[];
   exposeHeaders?: string[];
   credentials?: boolean;
@@ -15,7 +16,7 @@ export interface CorsOptions {
 
 export function cors(options: CorsOptions = {}): MiddlewareHandler {
   const defaultMethods = ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH'];
-  const methods = (options.methods ?? defaultMethods).join(', ');
+  const methods = (options.allowMethods ?? options.methods ?? defaultMethods).join(', ');
   const allowHeaders = options.allowHeaders ? options.allowHeaders.join(', ') : '*';
   const exposeHeaders = options.exposeHeaders ? options.exposeHeaders.join(', ') : undefined;
   const maxAge = options.maxAge !== undefined ? options.maxAge.toString() : '86400';

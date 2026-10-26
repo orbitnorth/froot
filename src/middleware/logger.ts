@@ -7,11 +7,12 @@ import type { MiddlewareHandler } from '../types/index.js';
 export interface LoggerOptions {
   format?: 'pretty' | 'json';
   output?: (msg: string) => void;
+  printer?: (msg: string) => void;
 }
 
 export function logger(options: LoggerOptions = {}): MiddlewareHandler {
   const isJson = options.format === 'json';
-  const out = options.output ?? console.log;
+  const out = options.output ?? options.printer ?? console.log;
 
   return async (c, next) => {
     const start = performance.now();
