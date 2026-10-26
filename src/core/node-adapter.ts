@@ -7,7 +7,10 @@ import * as http from 'node:http';
 import type { Socket } from 'node:net';
 import { Readable } from 'node:stream';
 import type { TLSSocket } from 'node:tls';
-import type { Froot } from './app.js';
+
+export interface FetchableApp {
+  fetch(request: Request): Promise<Response>;
+}
 
 export interface NodeServerOptions {
   port?: number | undefined;
@@ -18,7 +21,7 @@ export interface NodeServerOptions {
   noDelay?: boolean | undefined;
 }
 
-export function serve(app: Froot, options: NodeServerOptions = {}): http.Server {
+export function serve(app: FetchableApp, options: NodeServerOptions = {}): http.Server {
   const port = options.port ?? 3000;
   const host = options.host ?? '0.0.0.0';
   const keepAliveTimeout = options.keepAliveTimeout ?? 65000;
