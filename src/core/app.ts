@@ -1,15 +1,16 @@
 /**
  * Core Froot Application class.
- * Orchestrates routing, middleware pipelines, error handling, and dual runtime dispatch.
+ * Orchestrates routing, middleware pipelines, error handling, and multi-runtime execution (Node, Bun, Deno, Cloudflare Workers).
  */
 
 import type { HTTPMethod } from '../types/http.js';
 import type {
+  BlankEnv,
   Context,
+  Env,
   Handler,
   MiddlewareHandler,
-  Next,
-  Variables
+  Next
 } from '../types/index.js';
 import { SmartRouter } from '../router/smart-router.js';
 import { FrootContext } from './context.js';
@@ -17,7 +18,7 @@ import { HTTPException } from './errors.js';
 import { serve, type NodeServerOptions } from './node-adapter.js';
 
 type AnyHandler = (
-  c: Context<string, Variables>
+  c: Context<string, Env>
 ) => Promise<Response | unknown> | Response | unknown;
 
 type RouteRegistration = {
@@ -27,12 +28,12 @@ type RouteRegistration = {
   middleware: MiddlewareHandler[];
 };
 
-export class Froot<TVars extends Variables = Variables> {
+export class Froot<TEnv extends Env = BlankEnv> {
   private router = new SmartRouter<AnyHandler>();
-  private globalMiddleware: Array<{ prefix?: string; handler: MiddlewareHandler }> = [];
+  private globalMiddleware: Array<{ prefix?: string; handler: MiddlewareHandler<string, TEnv> }> = [];
   private registeredRoutes: RouteRegistration[] = [];
 
-  private errorHandler: (err: unknown, c: FrootContext) => Response | Promise<Response> = (
+  private errorHandler: (err: unknown, c: Context<string, TEnv>) => Response | Promise<Response> = (
     err,
     _c
   ) => {
@@ -54,7 +55,7 @@ export class Froot<TVars extends Variables = Variables> {
     );
   };
 
-  private notFoundHandler: (c: FrootContext) => Response | Promise<Response> = (_c) => {
+  private notFoundHandler: (c: Context<string, TEnv>) => Response | Promise<Response> = (_c) => {
     return new Response(
       JSON.stringify({
         type: 'https://httpstatuses.com/404',
@@ -72,17 +73,17 @@ export class Froot<TVars extends Variables = Variables> {
   /**
    * Register global or prefix-scoped middleware.
    */
-  public use(...handlers: MiddlewareHandler[]): this;
-  public use(prefix: string, ...handlers: MiddlewareHandler[]): this;
+  public use(...handlers: MiddlewareHandler<string, TEnv>[]): this;
+  public use(prefix: string, ...handlers: MiddlewareHandler<string, TEnv>[]): this;
   public use(...args: unknown[]): this {
     if (typeof args[0] === 'string') {
       const prefix = args[0];
-      const handlers = args.slice(1) as MiddlewareHandler[];
+      const handlers = args.slice(1) as MiddlewareHandler<string, TEnv>[];
       for (const h of handlers) {
         this.globalMiddleware.push({ prefix, handler: h });
       }
     } else {
-      const handlers = args as MiddlewareHandler[];
+      const handlers = args as MiddlewareHandler<string, TEnv>[];
       for (const h of handlers) {
         this.globalMiddleware.push({ handler: h });
       }
@@ -96,19 +97,19 @@ export class Froot<TVars extends Variables = Variables> {
   public on<P extends string>(
     method: HTTPMethod,
     path: P,
-    handler: Handler<P, TVars>
+    handler: Handler<P, TEnv>
   ): this;
   public on<P extends string>(
     method: HTTPMethod,
     path: P,
-    ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]
+    ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]
   ): this;
   public on<P extends string>(
     method: HTTPMethod,
     path: P,
-    ...handlers: (MiddlewareHandler | Handler<P, TVars>)[]
+    ...handlers: (MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]
   ): this {
-    const handler = handlers[handlers.length - 1] as Handler<P, TVars>;
+    const handler = handlers[handlers.length - 1] as Handler<P, TEnv>;
     const middleware = handlers.slice(0, -1) as MiddlewareHandler[];
 
     const anyHandler = handler as unknown as AnyHandler;
@@ -117,40 +118,40 @@ export class Froot<TVars extends Variables = Variables> {
     return this;
   }
 
-  public get<P extends string>(path: P, handler: Handler<P, TVars>): this;
-  public get<P extends string>(path: P, ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]): this;
-  public get<P extends string>(path: P, ...handlers: (MiddlewareHandler | Handler<P, TVars>)[]): this {
-    return this.on('GET', path, ...(handlers as [Handler<P, TVars>]));
+  public get<P extends string>(path: P, handler: Handler<P, TEnv>): this;
+  public get<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
+  public get<P extends string>(path: P, ...handlers: (MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+    return this.on('GET', path, ...(handlers as [Handler<P, TEnv>]));
   }
 
-  public post<P extends string>(path: P, handler: Handler<P, TVars>): this;
-  public post<P extends string>(path: P, ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]): this;
-  public post<P extends string>(path: P, ...handlers: (MiddlewareHandler | Handler<P, TVars>)[]): this {
-    return this.on('POST', path, ...(handlers as [Handler<P, TVars>]));
+  public post<P extends string>(path: P, handler: Handler<P, TEnv>): this;
+  public post<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
+  public post<P extends string>(path: P, ...handlers: (MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+    return this.on('POST', path, ...(handlers as [Handler<P, TEnv>]));
   }
 
-  public put<P extends string>(path: P, handler: Handler<P, TVars>): this;
-  public put<P extends string>(path: P, ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]): this;
-  public put<P extends string>(path: P, ...handlers: (MiddlewareHandler | Handler<P, TVars>)[]): this {
-    return this.on('PUT', path, ...(handlers as [Handler<P, TVars>]));
+  public put<P extends string>(path: P, handler: Handler<P, TEnv>): this;
+  public put<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
+  public put<P extends string>(path: P, ...handlers: (MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+    return this.on('PUT', path, ...(handlers as [Handler<P, TEnv>]));
   }
 
-  public delete<P extends string>(path: P, handler: Handler<P, TVars>): this;
-  public delete<P extends string>(path: P, ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]): this;
-  public delete<P extends string>(path: P, ...handlers: (MiddlewareHandler | Handler<P, TVars>)[]): this {
-    return this.on('DELETE', path, ...(handlers as [Handler<P, TVars>]));
+  public delete<P extends string>(path: P, handler: Handler<P, TEnv>): this;
+  public delete<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
+  public delete<P extends string>(path: P, ...handlers: (MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+    return this.on('DELETE', path, ...(handlers as [Handler<P, TEnv>]));
   }
 
-  public patch<P extends string>(path: P, handler: Handler<P, TVars>): this;
-  public patch<P extends string>(path: P, ...handlers: [...MiddlewareHandler[], Handler<P, TVars>]): this;
-  public patch<P extends string>(path: P, ...handlers: (MiddlewareHandler | Handler<P, TVars>)[]): this {
-    return this.on('PATCH', path, ...(handlers as [Handler<P, TVars>]));
+  public patch<P extends string>(path: P, handler: Handler<P, TEnv>): this;
+  public patch<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
+  public patch<P extends string>(path: P, ...handlers: (MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+    return this.on('PATCH', path, ...(handlers as [Handler<P, TEnv>]));
   }
 
   /**
    * Mount a sub-application under a path prefix.
    */
-  public route(prefix: string, subApp: Froot): this {
+  public route<SubEnv extends Env>(prefix: string, subApp: Froot<SubEnv>): this {
     const cleanPrefix = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
 
     for (const route of subApp.registeredRoutes) {
@@ -170,7 +171,7 @@ export class Froot<TVars extends Variables = Variables> {
   /**
    * Custom global error handler.
    */
-  public onError(handler: (err: unknown, c: FrootContext) => Response | Promise<Response>): this {
+  public onError(handler: (err: unknown, c: Context<string, TEnv>) => Response | Promise<Response>): this {
     this.errorHandler = handler;
     return this;
   }
@@ -178,7 +179,7 @@ export class Froot<TVars extends Variables = Variables> {
   /**
    * Custom 404 handler.
    */
-  public notFound(handler: (c: FrootContext) => Response | Promise<Response>): this {
+  public notFound(handler: (c: Context<string, TEnv>) => Response | Promise<Response>): this {
     this.notFoundHandler = handler;
     return this;
   }
@@ -192,9 +193,14 @@ export class Froot<TVars extends Variables = Variables> {
   }
 
   /**
-   * WinterCG Web Standards compliant fetch dispatcher.
+   * Universal Web Standards Fetch dispatcher.
+   * Compatible with WinterCG, Cloudflare Workers (env, ctx), Bun, Deno, and Edge environments.
    */
-  public fetch = async (request: Request): Promise<Response> => {
+  public fetch = async (
+    request: Request,
+    env?: unknown,
+    executionCtx?: unknown
+  ): Promise<Response> => {
     const url = new URL(request.url);
     const pathname = url.pathname;
     const method = request.method as HTTPMethod;
@@ -203,14 +209,14 @@ export class Froot<TVars extends Variables = Variables> {
     const match = this.router.match(method, pathname);
 
     if (!match) {
-      const c = new FrootContext(request, {});
+      const c = new FrootContext<string, TEnv>(request, {}, env, executionCtx);
       return this.notFoundHandler(c);
     }
 
-    const c = new FrootContext(request, match.params);
+    const c = new FrootContext<string, TEnv>(request, match.params, env, executionCtx);
 
     // 2. Assemble Onion Pipeline: applicable global middleware + route middleware + final handler
-    const pipeline: Array<(ctx: FrootContext, next: Next) => Promise<Response | void> | Response | void> = [];
+    const pipeline: Array<(ctx: Context<string, TEnv>, next: Next) => Promise<Response | void> | Response | void> = [];
 
     for (let i = 0; i < this.globalMiddleware.length; i++) {
       const m = this.globalMiddleware[i];
@@ -222,7 +228,7 @@ export class Froot<TVars extends Variables = Variables> {
 
     for (let i = 0; i < match.middleware.length; i++) {
       const m = match.middleware[i];
-      if (m) pipeline.push(m);
+      if (m) pipeline.push(m as MiddlewareHandler<string, TEnv>);
     }
 
     // Wrap handler as terminal pipeline step

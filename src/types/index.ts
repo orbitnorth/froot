@@ -1,6 +1,6 @@
 /**
  * Core type system for Froot Framework.
- * Provides compile-time route parameter extraction, type-safe handlers, and RPC metadata.
+ * Provides compile-time route parameter extraction, type-safe handlers, multi-runtime environment bindings, and RPC metadata.
  */
 
 import type { HTTPMethod, StatusCode } from './http.js';
@@ -28,6 +28,27 @@ export type RouteParams<Path extends string> = [ExtractParamNames<Path>] extends
  * Context state variables storage.
  */
 export type Variables = Record<string, unknown>;
+
+/**
+ * Multi-runtime environment interface (Cloudflare Workers bindings, Deno env, etc.)
+ */
+export interface Env {
+  Bindings?: Record<string, unknown> | undefined;
+  Variables?: Record<string, unknown> | undefined;
+}
+
+export type BlankEnv = {
+  Bindings: Record<string, unknown>;
+  Variables: Record<string, unknown>;
+};
+
+/**
+ * Runtime Execution Context (Cloudflare Workers, Fastly Compute, etc.)
+ */
+export interface ExecutionContext {
+  waitUntil(promise: Promise<unknown>): void;
+  passThroughOnException?(): void;
+}
 
 /**
  * Next function in the onion middleware pipeline.
@@ -61,23 +82,27 @@ export interface RequestContext<TPath extends string = string> {
  */
 export interface Context<
   TPath extends string = string,
-  TVars extends Variables = Variables
+  TEnv extends Env = BlankEnv
 > {
   readonly req: RequestContext<TPath>;
   readonly rawRequest: Request;
   readonly responseHeaders: Headers;
   statusCode: StatusCode;
   readonly params: RouteParams<TPath>;
+  readonly env: NonNullable<TEnv['Bindings']>;
+  readonly executionCtx?: ExecutionContext | undefined;
+  waitUntil(promise: Promise<unknown>): void;
   param<K extends ExtractParamNames<TPath>>(name: K): string;
   param(name: string): string | undefined;
   query(key?: string): string | undefined | Record<string, string | undefined>;
-  header(name: string, value?: string): string | undefined | this;
+  header(name: string): string | undefined;
+  header(name: string, value: string): this;
   status(code: StatusCode): this;
-  get<K extends keyof TVars>(key: K): TVars[K];
+  get<K extends keyof NonNullable<TEnv['Variables']>>(key: K): NonNullable<TEnv['Variables']>[K];
   set<K extends string, V>(
     key: K,
     value: V
-  ): Context<TPath, TVars & { [P in K]: V }>;
+  ): Context<TPath, TEnv & { Variables: { [P in K]: V } }>;
   json<T>(data: T, status?: StatusCode, headers?: HeadersInit): Response;
   text(text: string, status?: StatusCode, headers?: HeadersInit): Response;
   html(html: string, status?: StatusCode, headers?: HeadersInit): Response;
@@ -97,17 +122,17 @@ export interface Context<
  */
 export type FrootContext<
   TPath extends string = string,
-  TVars extends Variables = Variables
-> = Context<TPath, TVars>;
+  TEnv extends Env = BlankEnv
+> = Context<TPath, TEnv>;
 
 /**
  * Middleware handler definition.
  */
 export type MiddlewareHandler<
   TPath extends string = string,
-  TVars extends Variables = Variables
+  TEnv extends Env = BlankEnv
 > = (
-  c: Context<TPath, TVars>,
+  c: Context<TPath, TEnv>,
   next: Next
 ) => Promise<Response | void> | Response | void;
 
@@ -116,10 +141,10 @@ export type MiddlewareHandler<
  */
 export type Handler<
   TPath extends string = string,
-  TVars extends Variables = Variables,
+  TEnv extends Env = BlankEnv,
   TOutput = unknown
 > = (
-  c: Context<TPath, TVars>
+  c: Context<TPath, TEnv>
 ) => Promise<Response | TOutput> | Response | TOutput;
 
 /**

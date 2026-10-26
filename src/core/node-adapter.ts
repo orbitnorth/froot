@@ -9,7 +9,7 @@ import { Readable } from 'node:stream';
 import type { TLSSocket } from 'node:tls';
 
 export interface FetchableApp {
-  fetch(request: Request): Promise<Response>;
+  fetch(request: Request, env?: unknown, executionCtx?: unknown): Promise<Response>;
 }
 
 export interface NodeServerOptions {

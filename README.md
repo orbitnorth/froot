@@ -107,7 +107,53 @@ const res = await client.api.users[':id'].get({
 const user = await res.json(); // Inferred as { id: string; name: string }
 ```
 
-### 5. First-Party Batteries Included
+### 5. Multi-Runtime Support (Write Once, Run Anywhere)
+Froot is built on the standard Web Fetch API (`Request` and `Response`), allowing your application to run seamlessly across all modern JavaScript runtimes without code changes:
+
+- **Node.js**: Low-latency native engine with socket tuning (`setNoDelay(true)`, `keepAliveTimeout`):
+  ```typescript
+  import { Froot } from 'froot';
+  const app = new Froot();
+  app.listen(3000);
+  ```
+
+- **Cloudflare Workers**: First-class support with typed environment bindings and `c.waitUntil()`:
+  ```typescript
+  interface Env {
+    Bindings: { MY_KV: KVNamespace; API_SECRET: string };
+  }
+  const app = new Froot<Env>();
+  app.get('/data', async (c) => {
+    c.waitUntil(logAnalytics(c.req.url));
+    return c.json({ key: await c.env.MY_KV.get('key') });
+  });
+  export default app;
+  ```
+
+- **Bun**: Ultra-fast native execution:
+  ```typescript
+  // Bun natively recognizes `export default app` or `Bun.serve(app)`
+  export default app;
+  ```
+
+- **Deno**: Native Web Standards server:
+  ```typescript
+  Deno.serve(app.fetch);
+  ```
+
+- **AWS Lambda**: Serverless adapter for API Gateway v2 and Function URLs:
+  ```typescript
+  import { handle } from 'froot/adapters/aws-lambda';
+  export const handler = handle(app);
+  ```
+
+- **Runtime Detection Utility**:
+  ```typescript
+  import { getRuntime } from 'froot/runtime';
+  console.log(getRuntime()); // 'node' | 'bun' | 'deno' | 'workerd' | 'fastly' | 'edge-light'
+  ```
+
+### 6. First-Party Batteries Included
 - `cors()`: High-performance CORS preflight and headers.
 - `logger()`: Zero-overhead structured JSON or pretty logger.
 - `security()`: Modern Helmet-equivalent security headers (CSP, HSTS, X-Content-Type-Options).

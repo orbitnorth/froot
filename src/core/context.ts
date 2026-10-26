@@ -5,11 +5,13 @@
 
 import type { StatusCode } from '../types/http.js';
 import type {
+  BlankEnv,
   Context,
+  Env,
+  ExecutionContext,
   ExtractParamNames,
   RequestContext,
-  RouteParams,
-  Variables
+  RouteParams
 } from '../types/index.js';
 
 export class FrootRequest<TPath extends string = string> implements RequestContext<TPath> {
@@ -115,21 +117,40 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
 
 export class FrootContext<
   TPath extends string = string,
-  TVars extends Variables = Variables
-> implements Context<TPath, TVars> {
+  TEnv extends Env = BlankEnv
+> implements Context<TPath, TEnv> {
   // Fixed property order to stabilize V8 hidden class (Map)
   public readonly req: FrootRequest<TPath>;
   public readonly rawRequest: Request;
   public readonly responseHeaders: Headers;
   public statusCode: StatusCode = 200;
-  private _state: TVars;
+  public readonly env: NonNullable<TEnv['Bindings']>;
+  public readonly executionCtx?: ExecutionContext | undefined;
+  private _state: NonNullable<TEnv['Variables']>;
   private _res: Response | undefined = undefined;
 
-  constructor(raw: Request, params: Record<string, string> = {}) {
+  constructor(
+    raw: Request,
+    params: Record<string, string> = {},
+    env?: unknown,
+    executionCtx?: unknown
+  ) {
     this.rawRequest = raw;
     this.req = new FrootRequest<TPath>(raw, params);
     this.responseHeaders = new Headers();
-    this._state = {} as TVars;
+    this.env = (env ?? {}) as NonNullable<TEnv['Bindings']>;
+    this.executionCtx = executionCtx as ExecutionContext | undefined;
+    this._state = {} as NonNullable<TEnv['Variables']>;
+  }
+
+  public waitUntil(promise: Promise<unknown>): void {
+    if (this.executionCtx && typeof this.executionCtx.waitUntil === 'function') {
+      this.executionCtx.waitUntil(promise);
+    } else {
+      promise.catch((err: unknown) => {
+        console.error('Unhandled background task rejection in waitUntil:', err);
+      });
+    }
   }
 
   /**
@@ -158,6 +179,8 @@ export class FrootContext<
   /**
    * Set or get outgoing/incoming header.
    */
+  public header(name: string): string | undefined;
+  public header(name: string, value: string): this;
   public header(name: string, value?: string): string | undefined | this {
     if (value !== undefined) {
       this.responseHeaders.set(name, value);
@@ -177,8 +200,10 @@ export class FrootContext<
   /**
    * Type-safe state getter.
    */
-  public get<K extends keyof TVars>(key: K): TVars[K] {
-    return this._state[key];
+  public get<K extends keyof NonNullable<TEnv['Variables']>>(
+    key: K
+  ): NonNullable<TEnv['Variables']>[K] {
+    return (this._state as Record<string, unknown>)[key as string] as NonNullable<TEnv['Variables']>[K];
   }
 
   /**
@@ -187,9 +212,9 @@ export class FrootContext<
   public set<K extends string, V>(
     key: K,
     value: V
-  ): FrootContext<TPath, TVars & { [P in K]: V }> {
+  ): Context<TPath, TEnv & { Variables: { [P in K]: V } }> {
     (this._state as Record<string, unknown>)[key] = value;
-    return this as unknown as FrootContext<TPath, TVars & { [P in K]: V }>;
+    return this as unknown as Context<TPath, TEnv & { Variables: { [P in K]: V } }>;
   }
 
   /**

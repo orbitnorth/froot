@@ -1,5 +1,5 @@
 /**
- * Froot Framework - High performance, ultra flexible, TypeScript-native web framework.
+ * Froot Framework - High performance, ultra flexible, TypeScript-native, multi-runtime web framework.
  */
 
 // Core Application & Context
@@ -8,6 +8,10 @@ export { FrootContext, FrootRequest } from './core/context.js';
 export { HTTPException } from './core/errors.js';
 export { json, text, html, redirect } from './core/response.js';
 export { serve, type FetchableApp, type NodeServerOptions } from './core/node-adapter.js';
+
+// Multi-Runtime Adapters & Utilities
+export { handle as handleAwsLambda } from './adapters/aws-lambda.js';
+export { getRuntime, type Runtime } from './utils/runtime.js';
 
 // Routers
 export { SmartRouter } from './router/smart-router.js';
@@ -25,7 +29,7 @@ export { timing } from './middleware/timing.js';
 export { validate } from './schema/validator.js';
 
 // Client RPC
-export { createFrootClient } from './client/rpc.js';
+export { createFrootClient, type ClientProxy } from './client/rpc.js';
 
 // Type definitions
 export type * from './types/index.js';

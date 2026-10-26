@@ -326,3 +326,10 @@ const data = await res.json(); // Inferred as { id: string; name: string }!
 5. **Phase 5: First-Party Batteries**: Build `cors`, `logger`, `security`, `timing`, and `validator`.
 6. **Phase 6: End-to-End RPC Client**: Implement `createFrootClient`.
 7. **Phase 7: Verification, Examples & Benchmarks**: Test all routes, types, and verify zero build/runtime errors under Node 26.
+8. **Phase 8: Multi-Runtime Portability (Complete)**:
+   - Web Fetch standard request/response across all JavaScript runtimes.
+   - Cloudflare Workers: Typed bindings `c.env`, background tasks `c.waitUntil()`, native `export default app`.
+   - Bun: Native `Bun.serve(app)` and `export default app`.
+   - Deno: Native `Deno.serve(app.fetch)`.
+   - AWS Lambda: Serverless API Gateway v2 and Function URL adapter (`handle(app)`).
+   - Multi-runtime environment detector (`getRuntime()`).

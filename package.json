@@ -17,6 +17,18 @@
     "./middleware": {
       "types": "./dist/middleware/index.d.ts",
       "import": "./dist/middleware/index.js"
+    },
+    "./adapters/node": {
+      "types": "./dist/adapters/node.d.ts",
+      "import": "./dist/adapters/node.js"
+    },
+    "./adapters/aws-lambda": {
+      "types": "./dist/adapters/aws-lambda.d.ts",
+      "import": "./dist/adapters/aws-lambda.js"
+    },
+    "./runtime": {
+      "types": "./dist/utils/runtime.d.ts",
+      "import": "./dist/utils/runtime.js"
     }
   },
   "scripts": {
