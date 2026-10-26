@@ -1,0 +1,50 @@
+{
+  "name": "froot",
+  "version": "1.0.0",
+  "description": "High-performance, ultra-flexible, TypeScript-native web framework",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/rpc.d.ts",
+      "import": "./dist/client/rpc.js"
+    },
+    "./middleware": {
+      "types": "./dist/middleware/index.d.ts",
+      "import": "./dist/middleware/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "bench": "node examples/benchmark.ts",
+    "example:basic": "node examples/basic.ts",
+    "example:streaming": "node examples/streaming.ts",
+    "example:rpc": "node examples/rpc-demo.ts"
+  },
+  "keywords": [
+    "froot",
+    "framework",
+    "web",
+    "http",
+    "fast",
+    "typescript",
+    "performance",
+    "router",
+    "wintercg",
+    "api"
+  ],
+  "author": "Antigravity & Mohammed Mallahi",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.5",
+    "eslint": "^10.13.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.72.0"
+  }
+}
