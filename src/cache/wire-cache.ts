@@ -35,9 +35,11 @@ export class WireCacheStore {
       return null;
     }
 
-    // Refresh LRU order on hit
-    this.cache.delete(key);
-    this.cache.set(key, entry);
+    // Refresh LRU order only when cache is nearing capacity
+    if (this.cache.size > this.maxEntries * 0.8) {
+      this.cache.delete(key);
+      this.cache.set(key, entry);
+    }
     return entry.frame;
   }
 
@@ -54,6 +56,10 @@ export class WireCacheStore {
       frame,
       expiresAt: Date.now() + ttlMs
     });
+  }
+
+  public preWarm(key: string, frame: Buffer, ttlMs = 86400000): void {
+    this.set(key, frame, ttlMs);
   }
 
   public delete(key: string): boolean {

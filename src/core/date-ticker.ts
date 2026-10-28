@@ -86,38 +86,38 @@ export function buildHttpFrame(
     : (Buffer.isBuffer(body) ? body : Buffer.from(body));
 
   const dateBuf = getCachedDateHeaderBuffer();
+
+  if (!extraHeaders || Object.keys(extraHeaders).length === 0) {
+    // Ultra-fast single-allocation assembly without Buffer.concat
+    const ctHeader = `content-type: ${contentType}\r\ncontent-length: ${bodyBuf.length}\r\n\r\n`;
+    const ctHeaderLen = Buffer.byteLength(ctHeader);
+    const prefixLen = statusBuf.length + dateBuf.length + CONN_KEEP_ALIVE.length;
+    const totalLen = prefixLen + ctHeaderLen + bodyBuf.length;
+
+    const frame = Buffer.allocUnsafe(totalLen);
+    statusBuf.copy(frame, 0);
+    dateBuf.copy(frame, statusBuf.length);
+    CONN_KEEP_ALIVE.copy(frame, statusBuf.length + dateBuf.length);
+    frame.write(ctHeader, prefixLen, 'ascii');
+    bodyBuf.copy(frame, prefixLen + ctHeaderLen);
+    return frame;
+  }
+
   const ctBuf = Buffer.from(`content-type: ${contentType}\r\ncontent-length: ${bodyBuf.length}\r\n`);
-
-  let extraBuf: Buffer | null = null;
-  if (extraHeaders) {
-    const keys = Object.keys(extraHeaders);
-    if (keys.length > 0) {
-      let str = '';
-      for (let i = 0; i < keys.length; i++) {
-        const k = keys[i]!;
-        str += `${k.toLowerCase()}: ${extraHeaders[k]}\r\n`;
-      }
-      extraBuf = Buffer.from(str);
-    }
+  const keys = Object.keys(extraHeaders);
+  let str = '';
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i]!;
+    str += `${k.toLowerCase()}: ${extraHeaders[k]}\r\n`;
   }
-
-  if (extraBuf) {
-    return Buffer.concat([
-      statusBuf,
-      dateBuf,
-      CONN_KEEP_ALIVE,
-      ctBuf,
-      extraBuf,
-      CRLF,
-      bodyBuf
-    ]);
-  }
+  const extraBuf = Buffer.from(str);
 
   return Buffer.concat([
     statusBuf,
     dateBuf,
     CONN_KEEP_ALIVE,
     ctBuf,
+    extraBuf,
     CRLF,
     bodyBuf
   ]);
