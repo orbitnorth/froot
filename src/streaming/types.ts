@@ -45,3 +45,4 @@ export interface SSEController extends StreamController {
    */
   writeSSE(event: SSEEvent): Promise<void>;
 }
+
