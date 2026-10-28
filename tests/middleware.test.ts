@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { Froot } from 'froot';
-import { cors, security, timing, logger, etag } from 'froot/middleware';
+import { cors, security, timing, logger, etag, bodyLimit } from 'froot/middleware';
 
 describe('Built-in Batteries & Middleware', () => {
   it('should apply CORS headers on regular requests and handle preflight OPTIONS', async () => {
@@ -119,5 +119,53 @@ describe('Built-in Batteries & Middleware', () => {
     const strongTag = resStrong.headers.get('etag');
     assert.ok(strongTag);
     assert.ok(!strongTag.startsWith('W/'), 'Strong ETag should not start with W/');
+  });
+
+  it('should enforce request body limits and reject oversized payloads with HTTP 413', async () => {
+    const app = new Froot();
+    app.use('/api/upload', bodyLimit({ maxSize: '1kb' }));
+    app.post('/api/upload', (c) => c.json({ uploaded: true }));
+
+    // 1. Allowed request (small body ~30 bytes)
+    const allowedRes = await app.fetch(new Request('http://localhost/api/upload', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'content-length': '35'
+      },
+      body: JSON.stringify({ message: 'within limits' })
+    }));
+    assert.equal(allowedRes.status, 200);
+    assert.deepEqual(await allowedRes.json(), { uploaded: true });
+
+    // 2. Oversized request (exceeds 1kb)
+    const oversizedBody = 'x'.repeat(2048);
+    const rejectedRes = await app.fetch(new Request('http://localhost/api/upload', {
+      method: 'POST',
+      headers: {
+        'content-type': 'text/plain',
+        'content-length': '2048'
+      },
+      body: oversizedBody
+    }));
+    assert.equal(rejectedRes.status, 413);
+    const errBody = await rejectedRes.json();
+    assert.equal(errBody.title, 'Payload Too Large');
+
+    // 3. Custom onError handler
+    const customApp = new Froot();
+    customApp.use('*', bodyLimit({
+      maxSize: 100,
+      onError: (c) => c.text('Too big!', 413)
+    }));
+    customApp.post('/test', (c) => c.text('ok'));
+
+    const customRes = await customApp.fetch(new Request('http://localhost/test', {
+      method: 'POST',
+      headers: { 'content-length': '500' },
+      body: 'large'.repeat(100)
+    }));
+    assert.equal(customRes.status, 413);
+    assert.equal(await customRes.text(), 'Too big!');
   });
 });
