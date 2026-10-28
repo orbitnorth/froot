@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { Froot } from 'froot';
-import { cors, security, timing, logger, etag, bodyLimit, bearerAuth } from 'froot/middleware';
+import { cors, security, timing, logger, etag, bodyLimit, bearerAuth, rateLimiter } from 'froot/middleware';
 
 describe('Built-in Batteries & Middleware', () => {
   it('should apply CORS headers on regular requests and handle preflight OPTIONS', async () => {
@@ -217,5 +217,71 @@ describe('Built-in Batteries & Middleware', () => {
     }));
     assert.equal(resCustom.status, 200);
     assert.equal(await resCustom.text(), 'verified');
+  });
+
+  it('should enforce rate limits and attach RateLimit headers using rateLimiter middleware', async () => {
+    const app = new Froot();
+    // Allow 3 requests per 60 seconds
+    app.use('/api/limited', rateLimiter({
+      windowMs: 60_000,
+      limit: 3,
+    }));
+    app.get('/api/limited', (c) => c.json({ allowed: true }));
+
+    // Request 1: Allowed, 2 remaining
+    const res1 = await app.fetch(new Request('http://localhost/api/limited', {
+      headers: { 'x-forwarded-for': '192.168.1.100' }
+    }));
+    assert.equal(res1.status, 200);
+    assert.equal(res1.headers.get('ratelimit-limit'), '3');
+    assert.equal(res1.headers.get('ratelimit-remaining'), '2');
+    assert.ok(Number(res1.headers.get('ratelimit-reset')) > 0);
+
+    // Request 2: Allowed, 1 remaining
+    const res2 = await app.fetch(new Request('http://localhost/api/limited', {
+      headers: { 'x-forwarded-for': '192.168.1.100' }
+    }));
+    assert.equal(res2.status, 200);
+    assert.equal(res2.headers.get('ratelimit-remaining'), '1');
+
+    // Request 3: Allowed, 0 remaining
+    const res3 = await app.fetch(new Request('http://localhost/api/limited', {
+      headers: { 'x-forwarded-for': '192.168.1.100' }
+    }));
+    assert.equal(res3.status, 200);
+    assert.equal(res3.headers.get('ratelimit-remaining'), '0');
+
+    // Request 4: Blocked with HTTP 429 Too Many Requests
+    const res4 = await app.fetch(new Request('http://localhost/api/limited', {
+      headers: { 'x-forwarded-for': '192.168.1.100' }
+    }));
+    assert.equal(res4.status, 429);
+    assert.equal(res4.headers.get('ratelimit-remaining'), '0');
+    assert.ok(Number(res4.headers.get('retry-after')) > 0);
+    const errBody = await res4.json();
+    assert.equal(errBody.status, 429);
+    assert.equal(errBody.title, 'Too Many Requests');
+
+    // Request 5: From a different IP address should succeed under its own quota
+    const resOtherIp = await app.fetch(new Request('http://localhost/api/limited', {
+      headers: { 'x-forwarded-for': '10.0.0.1' }
+    }));
+    assert.equal(resOtherIp.status, 200);
+    assert.equal(resOtherIp.headers.get('ratelimit-remaining'), '2');
+
+    // Custom limit handler
+    const customApp = new Froot();
+    customApp.use('*', rateLimiter({
+      limit: 1,
+      handler: (c) => c.text('Calm down!', 429)
+    }));
+    customApp.get('/test', (c) => c.text('ok'));
+
+    const customRes1 = await customApp.fetch(new Request('http://localhost/test'));
+    assert.equal(customRes1.status, 200);
+
+    const customRes2 = await customApp.fetch(new Request('http://localhost/test'));
+    assert.equal(customRes2.status, 429);
+    assert.equal(await customRes2.text(), 'Calm down!');
   });
 });
