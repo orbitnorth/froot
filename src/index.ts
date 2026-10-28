@@ -4,7 +4,7 @@
 
 // Core Application & Context
 export { Froot } from './core/app.js';
-export { FrootContext, FrootRequest } from './core/context.js';
+export { FrootContext, FrootRequest, ContextPool } from './core/context.js';
 export { HTTPException } from './core/errors.js';
 export { json, text, html, redirect } from './core/response.js';
 export { serve, type FetchableApp, type NodeServerOptions } from './core/node-adapter.js';

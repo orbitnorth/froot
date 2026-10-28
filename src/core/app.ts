@@ -13,7 +13,7 @@ import type {
   RouteMatch
 } from '../types/index.js';
 import { SmartRouter } from '../router/smart-router.js';
-import { FrootContext } from './context.js';
+import { ContextPool } from './context.js';
 import { HTTPException } from './errors.js';
 import { serve, type NodeServerOptions } from './node-adapter.js';
 import { startCluster, type ClusterOptions, type ClusterController } from './cluster.js';
@@ -389,7 +389,7 @@ export class Froot<TEnv extends Env = BlankEnv> {
     // 1. Match route
     const match = this.router.match(method, pathname);
 
-    const c = new FrootContext<string, TEnv>(
+    const c = ContextPool.acquire<string, TEnv>(
       request,
       match ? match.params : {},
       env,
@@ -409,11 +409,13 @@ export class Froot<TEnv extends Env = BlankEnv> {
       }
     }
 
-    // 3. Execute runner with error boundary
+    // 3. Execute runner with error boundary and pool recycling
     try {
       return await runner(c);
     } catch (err) {
       return await this.errorHandler(err, c);
+    } finally {
+      ContextPool.release(c);
     }
   };
 

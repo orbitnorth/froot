@@ -90,17 +90,28 @@ function serializeCookie(name: string, value: string, options: CookieOptions = {
 }
 
 export class FrootRequest<TPath extends string = string> implements RequestContext<TPath> {
-  public readonly raw: Request;
-  public readonly params: RouteParams<TPath>;
+  public raw!: Request;
+  public params!: RouteParams<TPath>;
   private _queryCache: Record<string, string | undefined> | undefined = undefined;
   private _cookieCache: Record<string, string> | undefined = undefined;
   private _headerCache: Record<string, string | undefined> | undefined = undefined;
   private _urlObj: URL | undefined = undefined;
   private _path: string | undefined = undefined;
 
-  constructor(raw: Request, params: Record<string, string> = {}) {
+  constructor(raw?: Request, params: Record<string, string> = {}) {
+    if (raw) {
+      this.init(raw, params);
+    }
+  }
+
+  public init(raw: Request, params: Record<string, string> = {}): void {
     this.raw = raw;
     this.params = params as RouteParams<TPath>;
+    this._queryCache = undefined;
+    this._cookieCache = undefined;
+    this._headerCache = undefined;
+    this._urlObj = undefined;
+    this._path = undefined;
   }
 
   public get url(): string {
@@ -232,35 +243,68 @@ export class FrootContext<
   TEnv extends Env = BlankEnv
 > implements Context<TPath, TEnv> {
   // Fixed property order to stabilize V8 hidden class (Map)
-  public readonly req: FrootRequest<TPath>;
-  public readonly rawRequest: Request;
-  public readonly responseHeaders: Headers;
+  public req: FrootRequest<TPath>;
+  public rawRequest!: Request;
+  public responseHeaders: Headers;
   public statusCode: StatusCode = 200;
-  public readonly env: NonNullable<TEnv['Bindings']>;
-  public readonly executionCtx?: ExecutionContext | undefined;
-  private _state: NonNullable<TEnv['Variables']>;
+  public env!: NonNullable<TEnv['Bindings']>;
+  public executionCtx?: ExecutionContext | undefined;
+  private _state!: NonNullable<TEnv['Variables']>;
   private _res: Response | undefined = undefined;
+  public _pendingWaitUntils = 0;
 
   constructor(
-    raw: Request,
+    raw?: Request,
     params: Record<string, string> = {},
     env?: unknown,
     executionCtx?: unknown
   ) {
-    this.rawRequest = raw;
     this.req = new FrootRequest<TPath>(raw, params);
     this.responseHeaders = new Headers();
+    if (raw) {
+      this.init(raw, params, env, executionCtx);
+    }
+  }
+
+  public init(
+    raw: Request,
+    params: Record<string, string> = {},
+    env?: unknown,
+    executionCtx?: unknown
+  ): void {
+    this.rawRequest = raw;
+    this.req.init(raw, params);
+    this.statusCode = 200;
     this.env = (env ?? {}) as NonNullable<TEnv['Bindings']>;
     this.executionCtx = executionCtx as ExecutionContext | undefined;
     this._state = {} as NonNullable<TEnv['Variables']>;
+    this._res = undefined;
+    this._pendingWaitUntils = 0;
+    this.responseHeaders = new Headers();
+  }
+
+  public clean(): void {
+    this._state = {} as NonNullable<TEnv['Variables']>;
+    this._res = undefined;
+    this._pendingWaitUntils = 0;
   }
 
   public waitUntil(promise: Promise<unknown>): void {
+    this._pendingWaitUntils++;
+    const onDone = () => {
+      this._pendingWaitUntils--;
+      if (this._pendingWaitUntils === 0) {
+        ContextPool.release(this);
+      }
+    };
+
     if (this.executionCtx && typeof this.executionCtx.waitUntil === 'function') {
       this.executionCtx.waitUntil(promise);
+      promise.then(onDone, onDone);
     } else {
-      promise.catch((err: unknown) => {
+      promise.then(onDone, (err: unknown) => {
         console.error('Unhandled background task rejection in waitUntil:', err);
+        onDone();
       });
     }
   }
@@ -605,5 +649,43 @@ export class FrootContext<
     });
 
     return this._res;
+  }
+}
+
+/**
+ * High-speed LIFO Object Pool for FrootContext.
+ * Eliminates V8 Young Generation nursery allocations and GC scavenge pauses under load.
+ */
+export class ContextPool {
+  private static pool: FrootContext<any, any>[] = [];
+  private static readonly MAX_POOL_SIZE = 2048;
+
+  public static acquire<TPath extends string = string, TEnv extends Env = BlankEnv>(
+    raw: Request,
+    params: Record<string, string> = {},
+    env?: unknown,
+    executionCtx?: unknown
+  ): FrootContext<TPath, TEnv> {
+    const c = this.pool.pop();
+    if (c) {
+      c.init(raw, params, env, executionCtx);
+      return c as FrootContext<TPath, TEnv>;
+    }
+    return new FrootContext<TPath, TEnv>(raw, params, env, executionCtx);
+  }
+
+  public static release(c: FrootContext<any, any>): void {
+    if (c._pendingWaitUntils === 0 && this.pool.length < this.MAX_POOL_SIZE) {
+      c.clean();
+      this.pool.push(c);
+    }
+  }
+
+  public static size(): number {
+    return this.pool.length;
+  }
+
+  public static clear(): void {
+    this.pool.length = 0;
   }
 }

@@ -328,4 +328,30 @@ describe('Context & Request Abstraction', () => {
     const body3 = await verifyRes3.json();
     assert.equal(body3.verified, undefined);
   });
+
+  it('should pool and recycle FrootContext instances cleanly across requests', async () => {
+    const app = new Froot();
+    const seenContexts = new Set<unknown>();
+
+    app.get('/pool-test/:id', (c) => {
+      seenContexts.add(c);
+      c.set('custom_key', 'val_' + c.param('id'));
+      return c.json({
+        id: c.param('id'),
+        hasCustomKey: c.get('custom_key' as any)
+      });
+    });
+
+    // Run sequential requests: pool should pop and recycle the exact same context instance!
+    for (let i = 1; i <= 5; i++) {
+      const res = await app.fetch(new Request(`http://localhost/pool-test/${i}`));
+      assert.equal(res.status, 200);
+      const data = await res.json() as { id: string; hasCustomKey: string };
+      assert.equal(data.id, String(i));
+      assert.equal(data.hasCustomKey, `val_${i}`);
+    }
+
+    // Context was recycled instead of allocating 5 separate instances
+    assert.ok(seenContexts.size < 5, 'ContextPool should have recycled context instances');
+  });
 });
