@@ -16,6 +16,7 @@ import { SmartRouter } from '../router/smart-router.js';
 import { ContextPool } from './context.js';
 import { HTTPException } from './errors.js';
 import { serve, type NodeServerOptions } from './node-adapter.js';
+import { serveFast, type FastServerOptions } from './fast-server.js';
 import { startCluster, type ClusterOptions, type ClusterController } from './cluster.js';
 import { compileSerializer, type JSONSchema } from '../schema/serializer.js';
 
@@ -466,6 +467,18 @@ export class Froot<TEnv extends Env = BlankEnv> {
   public listen(port = 3000, callback?: () => void, options?: NodeServerOptions): import('node:http').Server {
     this.compile();
     const server = serve(this, { port, ...options });
+    if (callback) {
+      server.once('listening', callback);
+    }
+    return server;
+  }
+
+  /**
+   * Ultra-fast raw TCP HTTP/1.1 server launcher bypassing node:http and HTTPParser overhead.
+   */
+  public listenFast(port = 3000, callback?: () => void, options?: FastServerOptions): import('node:net').Server {
+    this.compile();
+    const server = serveFast(this, { port, ...options });
     if (callback) {
       server.once('listening', callback);
     }
