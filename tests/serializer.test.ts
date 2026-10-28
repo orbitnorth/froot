@@ -149,3 +149,4 @@ describe('AOT Schema JSON Serializer', () => {
     assert.deepEqual(body, { id: 'item_1', name: 'Ultra Display', price: 349.99 });
   });
 });
+

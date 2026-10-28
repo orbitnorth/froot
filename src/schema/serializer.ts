@@ -174,3 +174,4 @@ export function compileSerializer<T = unknown>(schema: JSONSchema): SerializerFu
   const generator = new Function('fastEscapeString', functionBody);
   return generator(fastEscapeString) as SerializerFunction<T>;
 }
+

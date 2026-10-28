@@ -101,3 +101,4 @@ export function fastParseQuery(url: string): Record<string, string> {
 
   return result;
 }
+
