@@ -327,6 +327,11 @@ export class Froot<TEnv extends Env = BlankEnv> {
     const len = middlewares.length;
 
     const syncResponseHeaders = (c: Context<string, TEnv>, finalRes: Response): Response => {
+      const internalRes = (c as unknown as { _res?: Response })._res;
+      if (finalRes === internalRes) {
+        return finalRes;
+      }
+
       c.responseHeaders.forEach((val, key) => {
         if (key.toLowerCase() !== 'set-cookie') {
           finalRes.headers.set(key, val);

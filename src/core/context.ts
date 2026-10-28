@@ -270,6 +270,7 @@ export class FrootContext<
   private _res: Response | undefined = undefined;
   public _pendingWaitUntils = 0;
   public _serializer?: ((data: any) => string) | undefined = undefined;
+  public _renderer?: ((content: any, c: Context<any, any>, status?: StatusCode, headers?: HeadersInit) => Promise<Response>) | undefined = undefined;
 
   constructor(
     raw?: Request,
@@ -299,6 +300,7 @@ export class FrootContext<
     this._res = undefined;
     this._pendingWaitUntils = 0;
     this._serializer = undefined;
+    this._renderer = undefined;
     this.responseHeaders = new Headers();
   }
 
@@ -307,6 +309,7 @@ export class FrootContext<
     this._res = undefined;
     this._pendingWaitUntils = 0;
     this._serializer = undefined;
+    this._renderer = undefined;
   }
 
   public waitUntil(promise: Promise<unknown>): void {
@@ -360,6 +363,9 @@ export class FrootContext<
   public header(name: string, value?: string): string | undefined | this {
     if (value !== undefined) {
       this.responseHeaders.set(name, value);
+      if (this._res) {
+        this._res.headers.set(name, value);
+      }
       return this;
     }
     return this.req.header(name);
@@ -669,6 +675,23 @@ export class FrootContext<
     });
 
     return this._res;
+  }
+
+  public setRenderer(renderer: (content: any, c: Context<TPath, TEnv>, status?: StatusCode, headers?: HeadersInit) => Promise<Response>): void {
+    this._renderer = renderer as any;
+  }
+
+  public async render(
+    content: any,
+    status?: StatusCode,
+    headers?: HeadersInit
+  ): Promise<Response> {
+    if (this._renderer) {
+      return await this._renderer(content, this as unknown as Context<TPath, TEnv>, status, headers);
+    }
+    const { renderToHtml } = await import('../jsx/render.js');
+    const html = await renderToHtml(content);
+    return this.html(html, status, headers);
   }
 }
 

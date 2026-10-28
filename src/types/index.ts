@@ -138,6 +138,8 @@ export interface Context<
     generator: (send: (data: { event?: string; data: string | object; id?: string }) => void) => Promise<void> | void,
     headers?: HeadersInit
   ): Response;
+  render(content: any, status?: StatusCode, headers?: HeadersInit): Promise<Response>;
+  setRenderer(renderer: (content: any, c: Context<TPath, TEnv>, status?: StatusCode, headers?: HeadersInit) => Promise<Response>): void;
 }
 
 /**

@@ -58,6 +58,27 @@ export {
 // Client RPC
 export { createFrootClient, type ClientProxy } from './client/rpc.js';
 
+// JSX & SSR Engine
+export {
+  jsx,
+  jsxs,
+  jsxDEV,
+  Fragment,
+  h,
+  renderToString,
+  renderToHtml,
+  escapeHtml,
+  raw,
+  isRawHtml,
+  jsxRenderer,
+  type Child,
+  type JSXNode,
+  type FC,
+  type PropsWithChildren,
+  type RawHtml,
+  type LayoutComponent
+} from './jsx/index.js';
+
 // Type definitions
 export type * from './types/index.js';
 export type * from './types/http.js';

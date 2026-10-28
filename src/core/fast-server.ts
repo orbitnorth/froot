@@ -1,7 +1,7 @@
 /**
  * High-performance Raw TCP HTTP/1.1 Engine for Froot Framework.
  * Bypasses Node's `node:http` module, `HTTPParser` callbacks, and `IncomingMessage`/`ServerResponse`
- * allocations, delivering 50,000+ to 100,000+ req/s.
+ * allocations, delivering maximum possible throughput on V8.
  */
 
 import net from 'node:net';
@@ -33,21 +33,125 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
   const host = options.host ?? '0.0.0.0';
 
   const server = net.createServer({ noDelay: true }, (socket) => {
-    // Slab buffer: 64KB per socket with dynamic expansion and compaction
     let slab = Buffer.allocUnsafe(65536);
     let writePos = 0;
     let readPos = 0;
-    let isProcessing = false;
+    let isAsyncRunning = false;
 
-    const processBuffer = async () => {
-      if (isProcessing) return;
-      isProcessing = true;
+    // Process synchronous wire-cache hits directly without Promise overhead
+    const drainSync = (): boolean => {
+      let corked = false;
+
+      while (readPos < writePos - 3 && !socket.destroyed) {
+        // Find \r\n\r\n (13, 10, 13, 10)
+        let headerEnd = -1;
+        for (let i = readPos; i < writePos - 3; i++) {
+          if (slab[i] === 13 && slab[i + 1] === 10 && slab[i + 2] === 13 && slab[i + 3] === 10) {
+            headerEnd = i + 4;
+            break;
+          }
+        }
+        if (headerEnd === -1) break;
+
+        // Fast-path: Check GET method (slab[readPos] === 71 && slab[readPos+1] === 69 && slab[readPos+2] === 84 && slab[readPos+3] === 32)
+        if (
+          slab[readPos] === 71 &&
+          slab[readPos + 1] === 69 &&
+          slab[readPos + 2] === 84 &&
+          slab[readPos + 3] === 32
+        ) {
+          const pathStart = readPos + 4;
+          let pathEnd = pathStart;
+          while (pathEnd < headerEnd && slab[pathEnd] !== 32) pathEnd++;
+
+          let queryStart = -1;
+          for (let i = pathStart; i < pathEnd; i++) {
+            if (slab[i] === 63) { queryStart = i; break; }
+          }
+          const cleanPathEnd = queryStart !== -1 ? queryStart : pathEnd;
+          const cleanPathLen = cleanPathEnd - pathStart;
+
+          let cachedWireFrame: Buffer | null = null;
+
+          // Direct byte-match for "/health" (7 bytes)
+          if (
+            cleanPathLen === 7 &&
+            slab[pathStart] === 47 &&
+            slab[pathStart + 1] === 104 &&
+            slab[pathStart + 2] === 101 &&
+            slab[pathStart + 3] === 97 &&
+            slab[pathStart + 4] === 108 &&
+            slab[pathStart + 5] === 116 &&
+            slab[pathStart + 6] === 104
+          ) {
+            cachedWireFrame = globalWireCache.get('GET:/health');
+          }
+          // Direct byte-match for "/api/products/" (14 bytes prefix)
+          else if (
+            cleanPathLen > 14 &&
+            slab[pathStart] === 47 &&
+            slab[pathStart + 1] === 97 &&
+            slab[pathStart + 2] === 112 &&
+            slab[pathStart + 3] === 105 &&
+            slab[pathStart + 4] === 47 &&
+            slab[pathStart + 5] === 112 &&
+            slab[pathStart + 6] === 114 &&
+            slab[pathStart + 7] === 111 &&
+            slab[pathStart + 8] === 100 &&
+            slab[pathStart + 9] === 117 &&
+            slab[pathStart + 10] === 99 &&
+            slab[pathStart + 11] === 116 &&
+            slab[pathStart + 12] === 115 &&
+            slab[pathStart + 13] === 47
+          ) {
+            const id = slab.toString('ascii', pathStart + 14, cleanPathEnd);
+            cachedWireFrame = globalWireCache.get('GET:/api/products/' + id);
+          } else {
+            const cleanPath = slab.toString('ascii', pathStart, cleanPathEnd);
+            cachedWireFrame = globalWireCache.get('GET:' + cleanPath);
+          }
+
+          if (cachedWireFrame) {
+            readPos = headerEnd; // GET has 0 content length
+            if (!corked && readPos < writePos) {
+              socket.cork();
+              corked = true;
+            }
+            socket.write(cachedWireFrame);
+            continue;
+          }
+        }
+
+        // Not a synchronous wire cache hit; needs async handler dispatch
+        if (corked) socket.uncork();
+        return false;
+      }
+
+      if (corked) socket.uncork();
+
+      // Compaction
+      if (readPos === writePos) {
+        readPos = 0;
+        writePos = 0;
+      } else if (readPos > 32768) {
+        slab.copy(slab, 0, readPos, writePos);
+        writePos -= readPos;
+        readPos = 0;
+      }
+
+      return true; // Drained everything synchronously
+    };
+
+    const processAsync = async () => {
+      if (isAsyncRunning) return;
+      isAsyncRunning = true;
 
       try {
-        let corked = false;
+        while (readPos < writePos - 3 && !socket.destroyed) {
+          // If sync fast path can drain cache hits, do it first
+          if (drainSync()) break;
 
-        while (readPos < writePos && !socket.destroyed) {
-          // Scan for end of HTTP headers: \r\n\r\n (13, 10, 13, 10)
+          // Header end
           let headerEnd = -1;
           for (let i = readPos; i < writePos - 3; i++) {
             if (slab[i] === 13 && slab[i + 1] === 10 && slab[i + 2] === 13 && slab[i + 3] === 10) {
@@ -55,23 +159,15 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
               break;
             }
           }
+          if (headerEnd === -1) break;
 
-          if (headerEnd === -1) {
-            // Incomplete headers, wait for more chunks
-            break;
-          }
-
-          // Parse Request Line: find first and second space (0x20)
+          // Parse spaces
           let firstSpace = -1;
           let secondSpace = -1;
           for (let i = readPos; i < headerEnd; i++) {
             if (slab[i] === 32) {
-              if (firstSpace === -1) {
-                firstSpace = i;
-              } else if (secondSpace === -1) {
-                secondSpace = i;
-                break;
-              }
+              if (firstSpace === -1) firstSpace = i;
+              else if (secondSpace === -1) { secondSpace = i; break; }
             }
           }
 
@@ -81,7 +177,6 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
             return;
           }
 
-          // Method identification without string allocation
           let method = 'GET';
           const methodLen = firstSpace - readPos;
           if (methodLen === 3 && slab[readPos] === 71 && slab[readPos + 1] === 69 && slab[readPos + 2] === 84) {
@@ -92,26 +187,10 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
             method = 'PUT';
           } else if (methodLen === 6 && slab[readPos] === 68 && slab[readPos + 1] === 69 && slab[readPos + 2] === 76 && slab[readPos + 3] === 69 && slab[readPos + 4] === 84 && slab[readPos + 5] === 69) {
             method = 'DELETE';
-          } else if (methodLen === 4 && slab[readPos] === 72 && slab[readPos + 1] === 69 && slab[readPos + 2] === 65 && slab[readPos + 3] === 68) {
-            method = 'HEAD';
-          } else if (methodLen === 5 && slab[readPos] === 80 && slab[readPos + 1] === 65 && slab[readPos + 2] === 84 && slab[readPos + 3] === 67 && slab[readPos + 4] === 72) {
-            method = 'PATCH';
           } else {
             method = slab.toString('ascii', readPos, firstSpace);
           }
 
-          // Clean path and query delimiter
-          let queryStart = -1;
-          for (let i = firstSpace + 1; i < secondSpace; i++) {
-            if (slab[i] === 63) {
-              queryStart = i;
-              break;
-            }
-          }
-          const cleanPathEnd = queryStart !== -1 ? queryStart : secondSpace;
-          const cleanPathLen = cleanPathEnd - (firstSpace + 1);
-
-          // Content-Length parsing: skip for GET/HEAD; byte-scan for others
           let contentLength = 0;
           if (method !== 'GET' && method !== 'HEAD') {
             for (let i = secondSpace; i < headerEnd - 15; i++) {
@@ -144,65 +223,8 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
           }
 
           const totalReqLen = (headerEnd - readPos) + contentLength;
-          if (writePos - readPos < totalReqLen) {
-            // Need more data for full request body
-            break;
-          }
+          if (writePos - readPos < totalReqLen) break;
 
-          // Turbo-Mode Wire Cache Fast-Path (Zero-Copy)
-          if (method === 'GET') {
-            let cachedWireFrame: Buffer | null = null;
-
-            // Direct byte-pattern match for "/health" (7 bytes)
-            if (
-              cleanPathLen === 7 &&
-              slab[firstSpace + 1] === 47 &&
-              slab[firstSpace + 2] === 104 &&
-              slab[firstSpace + 3] === 101 &&
-              slab[firstSpace + 4] === 97 &&
-              slab[firstSpace + 5] === 108 &&
-              slab[firstSpace + 6] === 116 &&
-              slab[firstSpace + 7] === 104
-            ) {
-              cachedWireFrame = globalWireCache.get('GET:/health');
-            }
-            // Direct byte-pattern match for "/api/products/" (14 bytes prefix)
-            else if (
-              cleanPathLen > 14 &&
-              slab[firstSpace + 1] === 47 &&
-              slab[firstSpace + 2] === 97 &&
-              slab[firstSpace + 3] === 112 &&
-              slab[firstSpace + 4] === 105 &&
-              slab[firstSpace + 5] === 47 &&
-              slab[firstSpace + 6] === 112 &&
-              slab[firstSpace + 7] === 114 &&
-              slab[firstSpace + 8] === 111 &&
-              slab[firstSpace + 9] === 100 &&
-              slab[firstSpace + 10] === 117 &&
-              slab[firstSpace + 11] === 99 &&
-              slab[firstSpace + 12] === 116 &&
-              slab[firstSpace + 13] === 115 &&
-              slab[firstSpace + 14] === 47
-            ) {
-              const id = slab.toString('ascii', firstSpace + 15, cleanPathEnd);
-              cachedWireFrame = globalWireCache.get('GET:/api/products/' + id);
-            } else {
-              const cleanPath = slab.toString('ascii', firstSpace + 1, cleanPathEnd);
-              cachedWireFrame = globalWireCache.get('GET:' + cleanPath);
-            }
-
-            if (cachedWireFrame) {
-              readPos += totalReqLen;
-              if (!corked && readPos < writePos) {
-                socket.cork();
-                corked = true;
-              }
-              socket.write(cachedWireFrame);
-              continue;
-            }
-          }
-
-          // Cache miss or non-GET: extract body buffer if any
           let bodyBuffer: Buffer | null = null;
           if (contentLength > 0) {
             bodyBuffer = slab.subarray(headerEnd, headerEnd + contentLength);
@@ -210,16 +232,13 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
 
           const fullPath = slab.toString('ascii', firstSpace + 1, secondSpace);
           const currentHeaderEnd = headerEnd;
-          const currentTotalReqLen = totalReqLen;
 
-          // Consume request from slab
-          readPos += currentTotalReqLen;
+          readPos += totalReqLen;
 
-          // Parse raw headers line by line without allocating intermediate arrays
           const rawHeadersRecord: Record<string, string> = {};
           let lineStart = secondSpace;
           while (lineStart < currentHeaderEnd && slab[lineStart] !== 10) lineStart++;
-          lineStart++; // advance past \n
+          lineStart++;
 
           while (lineStart < currentHeaderEnd - 2) {
             let lineEnd = lineStart;
@@ -227,10 +246,7 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
             if (lineEnd > lineStart) {
               let colon = -1;
               for (let k = lineStart; k < lineEnd; k++) {
-                if (slab[k] === 58) {
-                  colon = k;
-                  break;
-                }
+                if (slab[k] === 58) { colon = k; break; }
               }
               if (colon !== -1) {
                 const k = slab.toString('ascii', lineStart, colon).trim().toLowerCase();
@@ -238,7 +254,7 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
                 rawHeadersRecord[k] = v;
               }
             }
-            lineStart = lineEnd + 2; // advance past \r\n
+            lineStart = lineEnd + 2;
           }
 
           const lazyHeaders = new LazyHeaders(rawHeadersRecord);
@@ -258,7 +274,6 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
           const statusCode = webRes.status;
           const contentType = webRes.headers.get('content-type') || 'application/json';
 
-          // Extract response body
           let resBody: Buffer;
           const rawBody = (webRes as unknown as { _rawBody?: string | Buffer | null })._rawBody;
           if (Buffer.isBuffer(rawBody)) {
@@ -272,7 +287,6 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
             resBody = Buffer.alloc(0);
           }
 
-          // Check if wireFrame was cached by middleware
           const wireFrame = (webRes as unknown as { _wireFrame?: Buffer })._wireFrame;
           if (wireFrame) {
             socket.write(wireFrame);
@@ -288,11 +302,6 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
           }
         }
 
-        if (corked) {
-          socket.uncork();
-        }
-
-        // Slab compaction if all consumed or readPos advanced significantly
         if (readPos === writePos) {
           readPos = 0;
           writePos = 0;
@@ -302,13 +311,11 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
           readPos = 0;
         }
       } catch {
-        if (!socket.destroyed) {
-          socket.write(HTTP_500_FRAME);
-        }
+        if (!socket.destroyed) socket.write(HTTP_500_FRAME);
       } finally {
-        isProcessing = false;
+        isAsyncRunning = false;
         if (readPos < writePos && !socket.destroyed) {
-          setImmediate(processBuffer);
+          processAsync();
         }
       }
     };
@@ -316,7 +323,6 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
     socket.on('data', (rawChunk) => {
       const chunk = Buffer.isBuffer(rawChunk) ? rawChunk : Buffer.from(rawChunk);
 
-      // Ensure slab capacity
       if (slab.length - writePos < chunk.length) {
         if (readPos > 0) {
           slab.copy(slab, 0, readPos, writePos);
@@ -333,7 +339,11 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
 
       chunk.copy(slab, writePos);
       writePos += chunk.length;
-      processBuffer();
+
+      // Try synchronous drain first; if not completely drained by sync wire cache hits, run async
+      if (!drainSync()) {
+        processAsync();
+      }
     });
 
     socket.on('error', () => {

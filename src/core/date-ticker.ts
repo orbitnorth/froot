@@ -59,7 +59,6 @@ const STATUS_404 = Buffer.from('HTTP/1.1 404 Not Found\r\n');
 const STATUS_500 = Buffer.from('HTTP/1.1 500 Internal Server Error\r\n');
 
 const CONN_KEEP_ALIVE = Buffer.from('connection: keep-alive\r\n');
-const CRLF = Buffer.from('\r\n');
 
 /**
  * Assembles an atomic, zero-copy HTTP/1.1 response wire frame.
@@ -103,23 +102,23 @@ export function buildHttpFrame(
     return frame;
   }
 
-  const ctBuf = Buffer.from(`content-type: ${contentType}\r\ncontent-length: ${bodyBuf.length}\r\n`);
+  let extraStr = '';
   const keys = Object.keys(extraHeaders);
-  let str = '';
   for (let i = 0; i < keys.length; i++) {
     const k = keys[i]!;
-    str += `${k.toLowerCase()}: ${extraHeaders[k]}\r\n`;
+    extraStr += `${k}: ${extraHeaders[k]}\r\n`;
   }
-  const extraBuf = Buffer.from(str);
+  const headersStr = `content-type: ${contentType}\r\ncontent-length: ${bodyBuf.length}\r\n${extraStr}\r\n`;
+  const headersLen = Buffer.byteLength(headersStr);
+  const prefixLen = statusBuf.length + dateBuf.length + CONN_KEEP_ALIVE.length;
+  const totalLen = prefixLen + headersLen + bodyBuf.length;
 
-  return Buffer.concat([
-    statusBuf,
-    dateBuf,
-    CONN_KEEP_ALIVE,
-    ctBuf,
-    extraBuf,
-    CRLF,
-    bodyBuf
-  ]);
+  const frame = Buffer.allocUnsafe(totalLen);
+  statusBuf.copy(frame, 0);
+  dateBuf.copy(frame, statusBuf.length);
+  CONN_KEEP_ALIVE.copy(frame, statusBuf.length + dateBuf.length);
+  frame.write(headersStr, prefixLen, 'ascii');
+  bodyBuf.copy(frame, prefixLen + headersLen);
+  return frame;
 }
 
