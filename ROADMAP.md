@@ -30,13 +30,13 @@ Froot has achieved its initial core milestones:
 
 ## 2. Milestone 2 Implementation Roadmap
 
-### Phase 1: Context Ergonomics & Cookie Management
-- [ ] **1.1 Native `c.redirect()`**: Add `c.redirect(location: string, status?: StatusCode): Response` to `Context` and `FrootContext`.
-- [ ] **1.2 Cookie Handling & Signing**:
+### Phase 1: Context Ergonomics & Cookie Management (COMPLETED)
+- [x] **1.1 Native `c.redirect()`**: Add `c.redirect(location: string, status?: StatusCode): Response` to `Context` and `FrootContext`.
+- [x] **1.2 Cookie Handling & Signing**:
   - `c.req.cookie(name: string)`: Fast, lazy parse of `Cookie` header.
   - `c.cookie(name, value, options)`: Type-safe `Set-Cookie` generation (`SameSite`, `HttpOnly`, `Secure`, `Path`, `Domain`, `Max-Age`, `Expires`).
   - `c.getSignedCookie(name, secret)` / `c.setSignedCookie(name, value, secret, options)`: HMAC-SHA256 signature tampering prevention.
-- [ ] **1.3 Cookie & Redirect Unit Tests**: Comprehensive test coverage across all scenarios.
+- [x] **1.3 Cookie & Redirect Unit Tests**: Comprehensive test coverage across all scenarios (42 passing tests).
 
 ### Phase 2: Production-Grade Middleware Batteries
 - [ ] **2.1 `etag`**: Cryptographic / FNV-1a response body hashing with automatic `If-None-Match` 304 Not Modified negotiation.
