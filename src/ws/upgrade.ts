@@ -142,3 +142,4 @@ function wire(socket: WebSocket, handlers: WSHandlers): void {
     handlers.onError?.(ws, event);
   });
 }
+

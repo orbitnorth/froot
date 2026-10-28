@@ -246,3 +246,4 @@ describe('upgradeWebSocket()', () => {
     assert.equal(res.headers.get('upgrade'), 'websocket');
   });
 });
+

@@ -88,3 +88,4 @@ export interface WSHub {
   /** Number of peers currently subscribed to a topic. */
   subscriberCount(topic: string): number;
 }
+

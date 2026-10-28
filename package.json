@@ -49,6 +49,10 @@
     "./ws": {
       "types": "./dist/ws/index.d.ts",
       "import": "./dist/ws/index.js"
+    },
+    "./auth": {
+      "types": "./dist/auth/index.d.ts",
+      "import": "./dist/auth/index.js"
     }
   },
   "scripts": {

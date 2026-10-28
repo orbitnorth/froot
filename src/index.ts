@@ -103,6 +103,32 @@ export {
   type WSHub,
 } from './ws/index.js';
 
+// Auth & Crypto — JWT, Basic Auth, PBKDF2, AES-GCM (Web Crypto, no deps)
+export {
+  sign,
+  verify,
+  jwt,
+  basicAuth,
+  timingSafeEqual,
+  randomBytes,
+  randomToken,
+  randomHex,
+  hashPassword,
+  verifyPassword,
+  generateAESKey,
+  importAESKey,
+  encrypt,
+  decrypt,
+  encryptString,
+  decryptString,
+  type JWTAlgorithm,
+  type JWTClaims,
+  type JWTHeader,
+  type SignOptions,
+  type VerifyOptions,
+  type BasicAuthOptions,
+} from './auth/index.js';
+
 // Type definitions
 export type * from './types/index.js';
 export type * from './types/http.js';
