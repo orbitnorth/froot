@@ -97,6 +97,8 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
   private _headerCache: Record<string, string | undefined> | undefined = undefined;
   private _urlObj: URL | undefined = undefined;
   private _path: string | undefined = undefined;
+  private _parsedBody: unknown = undefined;
+  private _textBody: string | undefined = undefined;
 
   constructor(raw?: Request, params: Record<string, string> = {}) {
     if (raw) {
@@ -112,6 +114,8 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
     this._headerCache = undefined;
     this._urlObj = undefined;
     this._path = undefined;
+    this._parsedBody = undefined;
+    this._textBody = undefined;
   }
 
   public get url(): string {
@@ -213,20 +217,33 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
   }
 
   public async json<T = unknown>(): Promise<T> {
-    const rawBuf = (this.raw as unknown as { _rawBodyBuffer?: Buffer | string })._rawBodyBuffer;
-    if (rawBuf !== undefined) {
-      if (typeof rawBuf === 'string') return JSON.parse(rawBuf) as T;
-      return JSON.parse(rawBuf.toString('utf-8')) as T;
+    if (this._parsedBody !== undefined) {
+      return this._parsedBody as T;
     }
-    return this.raw.json() as Promise<T>;
+
+    const rawBuf = (this.raw as unknown as { _rawBodyBuffer?: Buffer | string | null })._rawBodyBuffer;
+    if (rawBuf !== undefined && rawBuf !== null) {
+      this._parsedBody = JSON.parse(rawBuf as unknown as string) as T;
+      return this._parsedBody as T;
+    }
+
+    this._parsedBody = await (this.raw.json() as Promise<T>);
+    return this._parsedBody as T;
   }
 
   public async text(): Promise<string> {
-    const rawBuf = (this.raw as unknown as { _rawBodyBuffer?: Buffer | string })._rawBodyBuffer;
-    if (rawBuf !== undefined) {
-      return typeof rawBuf === 'string' ? rawBuf : rawBuf.toString('utf-8');
+    if (this._textBody !== undefined) {
+      return this._textBody;
     }
-    return this.raw.text();
+
+    const rawBuf = (this.raw as unknown as { _rawBodyBuffer?: Buffer | string | null })._rawBodyBuffer;
+    if (rawBuf !== undefined && rawBuf !== null) {
+      this._textBody = typeof rawBuf === 'string' ? rawBuf : rawBuf.toString('utf-8');
+      return this._textBody;
+    }
+
+    this._textBody = await this.raw.text();
+    return this._textBody;
   }
 
   public async arrayBuffer(): Promise<ArrayBuffer> {
