@@ -63,13 +63,17 @@ export class Froot<TEnv extends Env = BlankEnv> {
 
   private errorHandler: (err: unknown, c: Context<string, TEnv>) => Response | Promise<Response> = (
     err,
-    _c
+    c
   ) => {
     if (err instanceof HTTPException) {
-      return err.toResponse();
+      const res = err.toResponse();
+      c.responseHeaders.forEach((val, key) => {
+        res.headers.set(key, val);
+      });
+      return res;
     }
     const message = err instanceof Error ? err.message : 'Internal Server Error';
-    return new Response(
+    const res500 = new Response(
       JSON.stringify({
         type: 'https://httpstatuses.com/500',
         title: 'Internal Server Error',
@@ -81,6 +85,10 @@ export class Froot<TEnv extends Env = BlankEnv> {
         headers: { 'content-type': 'application/problem+json; charset=utf-8' }
       }
     );
+    c.responseHeaders.forEach((val, key) => {
+      res500.headers.set(key, val);
+    });
+    return res500;
   };
 
   private notFoundHandler: (c: Context<string, TEnv>) => Response | Promise<Response> = (_c) => {

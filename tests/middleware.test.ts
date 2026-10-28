@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { Froot } from 'froot';
-import { cors, security, timing, logger, etag, bodyLimit } from 'froot/middleware';
+import { cors, security, timing, logger, etag, bodyLimit, bearerAuth } from 'froot/middleware';
 
 describe('Built-in Batteries & Middleware', () => {
   it('should apply CORS headers on regular requests and handle preflight OPTIONS', async () => {
@@ -167,5 +167,55 @@ describe('Built-in Batteries & Middleware', () => {
     }));
     assert.equal(customRes.status, 413);
     assert.equal(await customRes.text(), 'Too big!');
+  });
+
+  it('should authenticate requests using RFC 6750 bearerAuth middleware', async () => {
+    const VALID_TOKEN = 'froot_live_secret_token_123';
+    const app = new Froot();
+
+    app.use('/api/protected/*', bearerAuth({
+      token: VALID_TOKEN,
+      realm: 'secure-api'
+    }));
+    app.get('/api/protected/profile', (c) => c.json({ user: 'authenticated-user' }));
+
+    // 1. Success with valid bearer token
+    const resValid = await app.fetch(new Request('http://localhost/api/protected/profile', {
+      headers: { authorization: `Bearer ${VALID_TOKEN}` }
+    }));
+    assert.equal(resValid.status, 200);
+    assert.deepEqual(await resValid.json(), { user: 'authenticated-user' });
+
+    // 2. Reject missing Authorization header
+    const resMissing = await app.fetch(new Request('http://localhost/api/protected/profile'));
+    assert.equal(resMissing.status, 401);
+    assert.equal(resMissing.headers.get('www-authenticate'), 'Bearer realm="secure-api"');
+
+    // 3. Reject malformed Authorization header (e.g. Basic instead of Bearer)
+    const resMalformed = await app.fetch(new Request('http://localhost/api/protected/profile', {
+      headers: { authorization: 'Basic dXNlcjpwYXNz' }
+    }));
+    assert.equal(resMalformed.status, 401);
+    assert.match(resMalformed.headers.get('www-authenticate') || '', /error="invalid_request"/);
+
+    // 4. Reject incorrect bearer token
+    const resInvalid = await app.fetch(new Request('http://localhost/api/protected/profile', {
+      headers: { authorization: 'Bearer wrong-token-xyz' }
+    }));
+    assert.equal(resInvalid.status, 401);
+    assert.match(resInvalid.headers.get('www-authenticate') || '', /error="invalid_token"/);
+
+    // 5. Custom async verify function
+    const customAuthApp = new Froot();
+    customAuthApp.use('*', bearerAuth({
+      verify: async (token) => token === 'dynamic-valid-key'
+    }));
+    customAuthApp.get('/test', (c) => c.text('verified'));
+
+    const resCustom = await customAuthApp.fetch(new Request('http://localhost/test', {
+      headers: { authorization: 'Bearer dynamic-valid-key' }
+    }));
+    assert.equal(resCustom.status, 200);
+    assert.equal(await resCustom.text(), 'verified');
   });
 });

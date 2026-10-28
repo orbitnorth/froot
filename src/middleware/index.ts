@@ -4,4 +4,5 @@ export * from './security.js';
 export * from './timing.js';
 export * from './etag.js';
 export * from './body-limit.js';
+export * from './bearer-auth.js';
 export * from '../schema/validator.js';
