@@ -139,4 +139,23 @@ describe('Context & Request Abstraction', () => {
     const res = await app.fetch(new Request('http://localhost/no-content'));
     assert.equal(res.status, 204);
   });
+
+  it('should support redirect with default 302 and custom status code', async () => {
+    const app = new Froot();
+    app.get('/old-path', (c) => c.redirect('/new-path'));
+    app.get('/permanent', (c) => c.redirect('https://example.com/dest', 301));
+    app.get('/see-other', (c) => c.redirect('/other', 303));
+
+    const res1 = await app.fetch(new Request('http://localhost/old-path'));
+    assert.equal(res1.status, 302);
+    assert.equal(res1.headers.get('location'), '/new-path');
+
+    const res2 = await app.fetch(new Request('http://localhost/permanent'));
+    assert.equal(res2.status, 301);
+    assert.equal(res2.headers.get('location'), 'https://example.com/dest');
+
+    const res3 = await app.fetch(new Request('http://localhost/see-other'));
+    assert.equal(res3.status, 303);
+    assert.equal(res3.headers.get('location'), '/other');
+  });
 });

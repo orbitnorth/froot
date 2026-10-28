@@ -320,6 +320,20 @@ export class FrootContext<
   }
 
   /**
+   * Returns a redirect response to the specified location.
+   */
+  public redirect(location: string, status: StatusCode = 302): Response {
+    this.responseHeaders.set('location', location);
+    this._res = new Response(null, {
+      status,
+      headers: this.responseHeaders
+    });
+    (this._res as unknown as { _rawBody?: string | null })._rawBody = null;
+
+    return this._res;
+  }
+
+  /**
    * Returns a streaming response.
    */
   public stream(

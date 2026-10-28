@@ -106,6 +106,7 @@ export interface Context<
   json<T>(data: T, status?: StatusCode, headers?: HeadersInit): Response;
   text(text: string, status?: StatusCode, headers?: HeadersInit): Response;
   html(html: string, status?: StatusCode, headers?: HeadersInit): Response;
+  redirect(location: string, status?: StatusCode): Response;
   stream(
     stream: ReadableStream,
     status?: StatusCode,
