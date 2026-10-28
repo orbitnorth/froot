@@ -14,6 +14,7 @@ import type {
   RequestContext,
   RouteParams
 } from '../types/index.js';
+import { signValue, verifySignedValue } from '../utils/crypto.js';
 
 function parseCookies(headerStr: string): Record<string, string> {
   const result: Record<string, string> = {};
@@ -325,6 +326,32 @@ export class FrootContext<
       maxAge: 0,
       expires: new Date(0)
     });
+  }
+
+  /**
+   * Sets an HMAC-SHA256 signed cookie to protect against client-side tampering.
+   */
+  public async setSignedCookie(
+    name: string,
+    value: string,
+    secret: string,
+    options?: CookieOptions
+  ): Promise<this> {
+    const signedValue = await signValue(value, secret);
+    return this.cookie(name, signedValue, options);
+  }
+
+  /**
+   * Reads and cryptographically verifies an HMAC-SHA256 signed cookie.
+   * Returns the un-signed value if valid, false if tampered, or undefined if missing.
+   */
+  public async getSignedCookie(
+    name: string,
+    secret: string
+  ): Promise<string | false | undefined> {
+    const raw = this.req.cookie(name);
+    if (raw === undefined) return undefined;
+    return await verifySignedValue(raw, secret);
   }
 
   /**

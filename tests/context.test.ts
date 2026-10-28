@@ -249,4 +249,62 @@ describe('Context & Request Abstraction', () => {
     assert.match(delCookieHeader, /Max-Age=0/);
     assert.match(delCookieHeader, /Expires=Thu, 01 Jan 1970/);
   });
+
+  it('should sign and verify HMAC-SHA256 signed cookies and detect tampering', async () => {
+    const SECRET = 'froot-cryptographic-master-key-2026';
+    const app = new Froot();
+
+    app.get('/login', async (c) => {
+      await c.setSignedCookie('auth_user', 'admin_user_99', SECRET, {
+        httpOnly: true,
+        secure: true
+      });
+      return c.json({ loggedIn: true });
+    });
+
+    app.get('/verify', async (c) => {
+      const verified = await c.getSignedCookie('auth_user', SECRET);
+      const wrongSecret = await c.getSignedCookie('auth_user', 'wrong-secret');
+      return c.json({ verified, wrongSecret });
+    });
+
+    // 1. Issue signed cookie
+    const loginRes = await app.fetch(new Request('http://localhost/login'));
+    assert.equal(loginRes.status, 200);
+
+    const setCookie = loginRes.headers.get('set-cookie') || '';
+    assert.match(setCookie, /auth_user=admin_user_99\./);
+
+    // Extract raw signed value: "admin_user_99.<base64Sig>"
+    const cookieValMatch = setCookie.match(/auth_user=([^;]+)/);
+    assert.ok(cookieValMatch && cookieValMatch[1]);
+    const validCookieStr = cookieValMatch[1];
+
+    // 2. Verify legitimate signed cookie
+    const validReq = new Request('http://localhost/verify', {
+      headers: { cookie: `auth_user=${validCookieStr}` }
+    });
+    const verifyRes1 = await app.fetch(validReq);
+    const body1 = await verifyRes1.json();
+    assert.equal(body1.verified, 'admin_user_99');
+    assert.equal(body1.wrongSecret, false); // Wrong secret fails verification
+
+    // 3. Verify tampered value (attacker alters 'admin_user_99' to 'admin_user_01')
+    const lastDot = validCookieStr.lastIndexOf('.');
+    const signatureOnly = validCookieStr.slice(lastDot + 1);
+    const tamperedPayload = `admin_user_01.${signatureOnly}`;
+
+    const tamperedReq = new Request('http://localhost/verify', {
+      headers: { cookie: `auth_user=${tamperedPayload}` }
+    });
+    const verifyRes2 = await app.fetch(tamperedReq);
+    const body2 = await verifyRes2.json();
+    assert.equal(body2.verified, false); // Tampered cookie rejected!
+
+    // 4. Missing signed cookie
+    const missingReq = new Request('http://localhost/verify');
+    const verifyRes3 = await app.fetch(missingReq);
+    const body3 = await verifyRes3.json();
+    assert.equal(body3.verified, undefined);
+  });
 });
