@@ -79,6 +79,17 @@ export {
   type LayoutComponent
 } from './jsx/index.js';
 
+// Streaming — chunked streams, plain text & Server-Sent Events
+export {
+  stream,
+  streamText,
+  streamSSE,
+  sleep,
+  type SSEEvent,
+  type StreamController,
+  type SSEController,
+} from './streaming/index.js';
+
 // Type definitions
 export type * from './types/index.js';
 export type * from './types/http.js';
