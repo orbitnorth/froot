@@ -34,16 +34,17 @@ Froot has achieved its initial core milestones:
 - [x] **1.1 Native `c.redirect()`**: Add `c.redirect(location: string, status?: StatusCode): Response` to `Context` and `FrootContext`.
 - [x] **1.2 Cookie Handling & Signing**:
   - `c.req.cookie(name: string)`: Fast, lazy parse of `Cookie` header.
-  - `c.cookie(name, value, options)`: Type-safe `Set-Cookie` generation (`SameSite`, `HttpOnly`, `Secure`, `Path`, `Domain`, `Max-Age`, `Expires`).
-  - `c.getSignedCookie(name, secret)` / `c.setSignedCookie(name, value, secret, options)`: HMAC-SHA256 signature tampering prevention.
+  - `c.cookie(name, value, options)`: Type-safe `Set-Cookie` generation (`SameSite`, `HttpOnly`, `Secure`, `Path`, `Domain`, `Max-Age`, `Expires`, `Partitioned`).
+  - `c.getSignedCookie(name, secret)` / `c.setSignedCookie(name, value, secret, options)`: WebCrypto HMAC-SHA256 signature tampering prevention.
 - [x] **1.3 Cookie & Redirect Unit Tests**: Comprehensive test coverage across all scenarios (42 passing tests).
 
-### Phase 2: Production-Grade Middleware Batteries
-- [ ] **2.1 `etag`**: Cryptographic / FNV-1a response body hashing with automatic `If-None-Match` 304 Not Modified negotiation.
-- [ ] **2.2 `bodyLimit`**: Configurable byte limit enforcement to protect against oversized payload DoS attacks.
-- [ ] **2.3 `bearerAuth`**: Header inspection and token verification middleware.
-- [ ] **2.4 `rateLimiter`**: Sliding window in-memory rate limiting with standard `RateLimit-*` headers.
-- [ ] **2.5 `serveStatic`**: High-performance static file serving middleware for Node/Bun/Deno runtimes.
+### Phase 2: Production-Grade Middleware Batteries (COMPLETED)
+- [x] **2.1 `etag`**: Cryptographic / FNV-1a response body hashing with automatic `If-None-Match` 304 Not Modified negotiation.
+- [x] **2.2 `bodyLimit`**: Configurable byte limit enforcement to protect against oversized payload DoS attacks.
+- [x] **2.3 `bearerAuth`**: RFC 6750 Authorization header inspection, token verification, and `WWW-Authenticate` response challenges.
+- [x] **2.4 `rateLimiter`**: Sliding window in-memory rate limiting with standard `RateLimit-*` and `Retry-After` headers.
+- [x] **2.5 `serveStatic`**: High-performance static file serving middleware with canonical path traversal defense and conditional ETag 304 caching.
+- [x] **2.6 Phase 2 Test Suite**: Comprehensive testing across all middleware batteries (47 passing tests).
 
 ### Phase 3: Fastify 3-Way Benchmark Parity
 - [ ] **3.1 Fastify REST API**: Build identical 7-endpoint catalog & order engine in `tests/src/fastify-app.ts`.
@@ -52,4 +53,3 @@ Froot has achieved its initial core milestones:
 ### Phase 4: Monorepo & Documentation Sync
 - [ ] **4.1 Public Exports**: Export all new middleware and cookie utilities from package entrypoints.
 - [ ] **4.2 Documentation**: Add lessons for cookies, caching, rate limiting, and static serving.
-
