@@ -132,4 +132,39 @@ describe('Multi-Runtime & Serverless Adapters', () => {
     await new Promise((r) => setTimeout(r, 40));
     assert.equal(backgroundDone, true);
   });
+
+  it('should stream POST request body and cork responses over native Node.js TCP socket', async () => {
+    const app = new Froot();
+    app.post('/api/upload', async (c) => {
+      const data = await c.req.json<{ message: string; count: number }>();
+      c.header('x-powered-by', 'Froot');
+      return c.json({ echo: data.message, multiplied: data.count * 2 }, 200);
+    });
+
+    const server = await new Promise<import('node:http').Server>((resolve) => {
+      const s = app.listen(0, () => resolve(s));
+    });
+
+    try {
+      const addr = server.address() as import('node:net').AddressInfo;
+      const port = addr.port;
+
+      const payload = JSON.stringify({ message: 'event-driven-io', count: 21 });
+      const res = await fetch(`http://127.0.0.1:${port}/api/upload`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'content-length': String(Buffer.byteLength(payload))
+        },
+        body: payload
+      });
+
+      assert.equal(res.status, 200);
+      assert.equal(res.headers.get('x-powered-by'), 'Froot');
+      const json = await res.json();
+      assert.deepEqual(json, { echo: 'event-driven-io', multiplied: 42 });
+    } finally {
+      await new Promise((r) => server.close(r));
+    }
+  });
 });
