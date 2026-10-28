@@ -132,4 +132,64 @@ describe('Application Core & Onion Middleware', () => {
       path: '/unknown-route'
     });
   });
+
+  it('should compile route runners ahead of time and handle specialized 0, 1, and N pipelines', async () => {
+    const app = new Froot();
+
+    // Route with 0 middleware
+    app.get('/zero', (c) => c.text('zero-middleware'));
+
+    // Route with 1 middleware
+    app.use('/one/*', async (c, next) => {
+      c.header('x-pipeline-layer', '1');
+      await next();
+    });
+    app.get('/one/test', (c) => c.text('one-middleware'));
+
+    // Route with N middleware (multiple global + route-specific)
+    app.use('/multi/*', async (c, next) => {
+      c.header('x-multi-1', 'a');
+      await next();
+    });
+    app.use('/multi/*', async (c, next) => {
+      c.header('x-multi-2', 'b');
+      await next();
+    });
+    app.get(
+      '/multi/test',
+      async (c, next) => {
+        c.header('x-multi-route', 'c');
+        await next();
+      },
+      (c) => c.text('multi-middleware')
+    );
+
+    // Explicit compilation
+    app.compile();
+
+    // Test 0 middleware
+    const resZero = await app.fetch(new Request('http://localhost/zero'));
+    assert.equal(resZero.status, 200);
+    assert.equal(await resZero.text(), 'zero-middleware');
+
+    // Test 1 middleware
+    const resOne = await app.fetch(new Request('http://localhost/one/test'));
+    assert.equal(resOne.status, 200);
+    assert.equal(resOne.headers.get('x-pipeline-layer'), '1');
+    assert.equal(await resOne.text(), 'one-middleware');
+
+    // Test N middleware
+    const resMulti = await app.fetch(new Request('http://localhost/multi/test'));
+    assert.equal(resMulti.status, 200);
+    assert.equal(resMulti.headers.get('x-multi-1'), 'a');
+    assert.equal(resMulti.headers.get('x-multi-2'), 'b');
+    assert.equal(resMulti.headers.get('x-multi-route'), 'c');
+    assert.equal(await resMulti.text(), 'multi-middleware');
+
+    // Test cache invalidation on new route registration
+    app.get('/dynamic-added', (c) => c.text('fresh'));
+    const resDynamic = await app.fetch(new Request('http://localhost/dynamic-added'));
+    assert.equal(resDynamic.status, 200);
+    assert.equal(await resDynamic.text(), 'fresh');
+  });
 });

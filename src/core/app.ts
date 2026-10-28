@@ -10,7 +10,7 @@ import type {
   Env,
   Handler,
   MiddlewareHandler,
-  Next
+  RouteMatch
 } from '../types/index.js';
 import { SmartRouter } from '../router/smart-router.js';
 import { FrootContext } from './context.js';
@@ -60,6 +60,7 @@ export class Froot<TEnv extends Env = BlankEnv> {
   private router = new SmartRouter<AnyHandler>();
   private globalMiddleware: Array<{ prefix?: string; handler: MiddlewareHandler<string, TEnv> }> = [];
   private registeredRoutes: RouteRegistration[] = [];
+  private runnerCache = new Map<string, (c: Context<string, TEnv>) => Promise<Response>>();
 
   private errorHandler: (err: unknown, c: Context<string, TEnv>) => Response | Promise<Response> = (
     err,
@@ -124,6 +125,7 @@ export class Froot<TEnv extends Env = BlankEnv> {
         this.globalMiddleware.push({ handler: h });
       }
     }
+    this.runnerCache.clear();
     return this;
   }
 
@@ -151,6 +153,7 @@ export class Froot<TEnv extends Env = BlankEnv> {
     const anyHandler = handler as unknown as AnyHandler;
     this.registeredRoutes.push({ method, path, handler: anyHandler, middleware });
     this.router.add(method, path, anyHandler, middleware);
+    this.runnerCache.clear();
     return this;
   }
 
@@ -201,6 +204,7 @@ export class Froot<TEnv extends Env = BlankEnv> {
       });
       this.router.add(route.method, fullPath, route.handler, route.middleware);
     }
+    this.runnerCache.clear();
     return this;
   }
 
@@ -232,7 +236,141 @@ export class Froot<TEnv extends Env = BlankEnv> {
    */
   public compile(): this {
     this.router.compile();
+    for (let i = 0; i < this.registeredRoutes.length; i++) {
+      const route = this.registeredRoutes[i];
+      if (!route || route.path.includes('*')) continue;
+      const match = this.router.match(route.method, route.path);
+      if (match) {
+        const cacheKey = `${route.method}:${route.path}`;
+        this.runnerCache.set(cacheKey, this.compileRouteRunner(match, route.path));
+      }
+    }
     return this;
+  }
+
+  /**
+   * Pre-compiles specialized onion middleware execution chain for a route.
+   */
+  private compileRouteRunner(
+    match: RouteMatch<AnyHandler> | null,
+    pathname: string
+  ): (c: Context<string, TEnv>) => Promise<Response> {
+    const middlewares: MiddlewareHandler<string, TEnv>[] = [];
+
+    for (let i = 0; i < this.globalMiddleware.length; i++) {
+      const m = this.globalMiddleware[i];
+      if (!m) continue;
+      if (matchesPrefix(pathname, m.prefix)) {
+        middlewares.push(m.handler);
+      }
+    }
+
+    if (match) {
+      for (let i = 0; i < match.middleware.length; i++) {
+        const m = match.middleware[i];
+        if (m) middlewares.push(m as MiddlewareHandler<string, TEnv>);
+      }
+    }
+
+    const terminalHandler: AnyHandler = match
+      ? match.handler
+      : (c) => this.notFoundHandler(c as Context<string, TEnv>);
+
+    const len = middlewares.length;
+
+    const syncResponseHeaders = (c: Context<string, TEnv>, finalRes: Response): Response => {
+      c.responseHeaders.forEach((val, key) => {
+        if (key.toLowerCase() !== 'set-cookie') {
+          finalRes.headers.set(key, val);
+        }
+      });
+
+      if (typeof (c.responseHeaders as unknown as { getSetCookie?: () => string[] }).getSetCookie === 'function') {
+        const cookies = (c.responseHeaders as unknown as { getSetCookie: () => string[] }).getSetCookie();
+        if (cookies.length > 0) {
+          finalRes.headers.delete('set-cookie');
+          for (const cookie of cookies) {
+            finalRes.headers.append('set-cookie', cookie);
+          }
+        }
+      }
+
+      return finalRes;
+    };
+
+    // Specialized fast-path: zero middleware
+    if (len === 0) {
+      return async (c: Context<string, TEnv>): Promise<Response> => {
+        const result = await terminalHandler(c);
+        let res: Response;
+        if (result instanceof Response) {
+          res = result;
+        } else if (typeof result === 'object' && result !== null) {
+          res = c.json(result);
+        } else if (typeof result === 'string') {
+          res = c.text(result);
+        } else {
+          const internalRes = (c as unknown as { _res?: Response })._res;
+          res = internalRes ?? c.text('', c.statusCode);
+        }
+        return syncResponseHeaders(c, res);
+      };
+    }
+
+    // Specialized fast-path: 1 middleware
+    if (len === 1) {
+      const m0 = middlewares[0]!;
+      return async (c: Context<string, TEnv>): Promise<Response> => {
+        const res = await m0(c, async () => {
+          const result = await terminalHandler(c);
+          if (result instanceof Response) {
+            (c as unknown as { _res?: Response })._res = result;
+          } else if (typeof result === 'object' && result !== null) {
+            (c as unknown as { _res?: Response })._res = c.json(result);
+          } else if (typeof result === 'string') {
+            (c as unknown as { _res?: Response })._res = c.text(result);
+          }
+        });
+        if (res instanceof Response) {
+          (c as unknown as { _res?: Response })._res = res;
+        }
+        const internalRes = (c as unknown as { _res?: Response })._res;
+        const finalRes = internalRes ?? c.text('', c.statusCode);
+        return syncResponseHeaders(c, finalRes);
+      };
+    }
+
+    // Pre-allocated N-middleware onion runner
+    return async (c: Context<string, TEnv>): Promise<Response> => {
+      let index = -1;
+      const dispatch = async (i: number): Promise<void> => {
+        if (i <= index) {
+          throw new Error('next() called multiple times');
+        }
+        index = i;
+        if (i < len) {
+          const fn = middlewares[i]!;
+          const res = await fn(c, () => dispatch(i + 1));
+          if (res instanceof Response) {
+            (c as unknown as { _res?: Response })._res = res;
+          }
+        } else {
+          const result = await terminalHandler(c);
+          if (result instanceof Response) {
+            (c as unknown as { _res?: Response })._res = result;
+          } else if (typeof result === 'object' && result !== null) {
+            (c as unknown as { _res?: Response })._res = c.json(result);
+          } else if (typeof result === 'string') {
+            (c as unknown as { _res?: Response })._res = c.text(result);
+          }
+        }
+      };
+
+      await dispatch(0);
+      const internalRes = (c as unknown as { _res?: Response })._res;
+      const finalRes = internalRes ?? c.text('', c.statusCode);
+      return syncResponseHeaders(c, finalRes);
+    };
   }
 
   /**
@@ -257,125 +395,22 @@ export class Froot<TEnv extends Env = BlankEnv> {
       executionCtx
     );
 
-    // Fast-path: When no middleware is present, avoid pipeline and closure allocations
-    if (this.globalMiddleware.length === 0 && (!match || match.middleware.length === 0)) {
-      if (!match) {
-        return this.notFoundHandler(c);
-      }
-      try {
-        const result = await match.handler(c);
-        let res: Response;
-        if (result instanceof Response) {
-          res = result;
-        } else if (typeof result === 'object' && result !== null) {
-          res = c.json(result);
-        } else if (typeof result === 'string') {
-          res = c.text(result);
-        } else {
-          const internalRes = (c as unknown as { _res?: Response })._res;
-          res = internalRes ?? c.text('', c.statusCode);
-        }
+    // 2. Lookup or compile specialized Route Runner
+    const cacheKey = match
+      ? (match.path.includes('*') ? `${method}:${pathname}` : `${method}:${match.path}`)
+      : `404:${pathname}`;
 
-        const internalRes = (c as unknown as { _res?: Response })._res;
-        if (res !== internalRes) {
-          c.responseHeaders.forEach((val, key) => {
-            if (key.toLowerCase() === 'set-cookie') {
-              res.headers.append(key, val);
-            } else {
-              res.headers.set(key, val);
-            }
-          });
-        }
-        return res;
-      } catch (err) {
-        return await this.errorHandler(err, c);
+    let runner = this.runnerCache.get(cacheKey);
+    if (!runner) {
+      runner = this.compileRouteRunner(match, pathname);
+      if (this.runnerCache.size < 10000) {
+        this.runnerCache.set(cacheKey, runner);
       }
     }
 
-    // 2. Assemble Onion Pipeline: applicable global middleware + route middleware + final handler
-    const pipeline: Array<(ctx: Context<string, TEnv>, next: Next) => Promise<Response | void> | Response | void> = [];
-
-    for (let i = 0; i < this.globalMiddleware.length; i++) {
-      const m = this.globalMiddleware[i];
-      if (!m) continue;
-      if (matchesPrefix(pathname, m.prefix)) {
-        pipeline.push(m.handler);
-      }
-    }
-
-    if (match) {
-      for (let i = 0; i < match.middleware.length; i++) {
-        const m = match.middleware[i];
-        if (m) pipeline.push(m as MiddlewareHandler<string, TEnv>);
-      }
-
-      // Wrap handler as terminal pipeline step
-      pipeline.push(async (ctx) => {
-        const result = await match.handler(ctx);
-        if (result instanceof Response) {
-          return result;
-        }
-        if (typeof result === 'object' && result !== null) {
-          return ctx.json(result);
-        }
-        if (typeof result === 'string') {
-          return ctx.text(result);
-        }
-        return undefined;
-      });
-    } else {
-      pipeline.push(async (ctx) => {
-        return this.notFoundHandler(ctx);
-      });
-    }
-
-    // 3. Execute Async Onion Pipeline
+    // 3. Execute runner with error boundary
     try {
-      let index = -1;
-
-      const dispatch = async (i: number): Promise<Response> => {
-        if (i <= index) {
-          throw new Error('next() called multiple times');
-        }
-        index = i;
-
-        const fn = pipeline[i];
-        if (!fn) {
-          const internalRes = (c as unknown as { _res?: Response })._res;
-          return internalRes ?? c.text('', c.statusCode);
-        }
-
-        const res = await fn(c, async () => {
-          await dispatch(i + 1);
-        });
-        if (res instanceof Response) {
-          (c as unknown as { _res?: Response })._res = res;
-        }
-
-        const internalRes = (c as unknown as { _res?: Response })._res;
-        const finalRes = internalRes ?? c.text('', c.statusCode);
-
-        // Synchronize headers from context onto response (e.g. from post-next middleware)
-        c.responseHeaders.forEach((val, key) => {
-          if (key.toLowerCase() !== 'set-cookie') {
-            finalRes.headers.set(key, val);
-          }
-        });
-
-        if (typeof (c.responseHeaders as unknown as { getSetCookie?: () => string[] }).getSetCookie === 'function') {
-          const cookies = (c.responseHeaders as unknown as { getSetCookie: () => string[] }).getSetCookie();
-          if (cookies.length > 0) {
-            finalRes.headers.delete('set-cookie');
-            for (const cookie of cookies) {
-              finalRes.headers.append('set-cookie', cookie);
-            }
-          }
-        }
-
-        return finalRes;
-      };
-
-      return await dispatch(0);
+      return await runner(c);
     } catch (err) {
       return await this.errorHandler(err, c);
     }
