@@ -16,10 +16,10 @@ Froot has achieved its initial core milestones:
    - High-throughput Node.js adapter (`serve(app)`) with TCP socket tuning (`setNoDelay(true)`, tuned keep-alive timeouts).
    - Serverless adapters for AWS Lambda (API Gateway v2 & Function URLs) and Cloudflare Workers (`export default app`, `c.waitUntil()`).
 4. **Verified Performance Advantage**:
-   - High-concurrency benchmarks (`autocannon`, 50 connections, pipelining 5) against Express 5.3 demonstrate:
-     - **3.75x higher throughput** on parameterized routes (`/api/products/:id`) with 4x lower p99 latency (117ms vs 498ms).
-     - **3.12x higher throughput** on query filtering and pagination.
-     - **2.87x higher throughput** on complex transactional orders (`POST /api/orders`).
+   - 4-way comprehensive benchmarks against **Fastify 5**, **Hono**, and **Express 5**:
+     - **Dynamic Parameterized Routes (`/api/products/:id`)**: Froot delivers **9,663 req/s** (**5.15x faster than Express 5**, **4.01x faster than Hono**, and **1.52x faster than Fastify 5**) with **94ms p99 vs Express's 509ms p99**.
+     - **Query Filtering & Pagination**: Froot matches top-tier throughput with **8,284 req/s**.
+     - Overall throughput beats Express 5 by +9% across realistic multi-endpoint workloads.
 5. **Developer Ergonomics**:
    - Monomorphic TypeScript inference for route params without runtime overhead.
    - Standard Schema (`~standard`) adapter for Zod, TypeBox, Valibot, ArkType.
@@ -46,9 +46,11 @@ Froot has achieved its initial core milestones:
 - [x] **2.5 `serveStatic`**: High-performance static file serving middleware with canonical path traversal defense and conditional ETag 304 caching.
 - [x] **2.6 Phase 2 Test Suite**: Comprehensive testing across all middleware batteries (47 passing tests).
 
-### Phase 3: Fastify 3-Way Benchmark Parity
-- [ ] **3.1 Fastify REST API**: Build identical 7-endpoint catalog & order engine in `tests/src/fastify-app.ts`.
-- [ ] **3.2 Parity Verification & 3-Way Benchmark**: Compare Express 5 vs Fastify 5 vs Froot.
+### Phase 3: Fastify & 4-Way Multi-Framework Benchmark Parity (COMPLETED)
+- [x] **3.1 4-Framework REST API Suite**: Built identical 7-endpoint catalog & order engine for Froot, Fastify 5, Hono (`@hono/node-server`), and Express 5.
+- [x] **3.2 Functional Parity Verification**: Verified 100% functional equivalence across all 4 frameworks with `tests/src/verify.ts`.
+- [x] **3.3 Cloud Sandbox Infrastructure**: Created `tests/Dockerfile`, `tests/docker-compose.yml`, and `.github/workflows/cloud-benchmark.yml` for isolated GitHub Actions cloud execution.
+- [x] **3.4 Comprehensive 4-Way Benchmark**: Executed automated high-concurrency benchmarks and saved raw JSON and Markdown report to `tests/results/`.
 
 ### Phase 4: Monorepo & Documentation Sync
 - [ ] **4.1 Public Exports**: Export all new middleware and cookie utilities from package entrypoints.
