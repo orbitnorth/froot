@@ -90,6 +90,19 @@ export {
   type SSEController,
 } from './streaming/index.js';
 
+// WebSockets — cross-runtime upgrade, peer context & pub/sub hub
+export {
+  upgradeWebSocket,
+  createHub,
+  createWSContext,
+  type WSMessageEvent,
+  type WSCloseEvent,
+  type WSErrorEvent,
+  type WSContext,
+  type WSHandlers,
+  type WSHub,
+} from './ws/index.js';
+
 // Type definitions
 export type * from './types/index.js';
 export type * from './types/http.js';
