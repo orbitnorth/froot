@@ -1,0 +1,124 @@
+/**
+ * High-performance 1Hz Cached Date Ticker for HTTP response formatting.
+ * Eliminates redundant `new Date().toUTCString()` allocations across thousands of requests per second.
+ */
+
+let cachedDateStr = new Date().toUTCString();
+let cachedDateHeaderBuffer = Buffer.from(`date: ${cachedDateStr}\r\n`);
+let tickerInterval: NodeJS.Timeout | null = null;
+
+function updateDate(): void {
+  cachedDateStr = new Date().toUTCString();
+  cachedDateHeaderBuffer = Buffer.from(`date: ${cachedDateStr}\r\n`);
+}
+
+/**
+ * Starts the background 1Hz date ticker if not already running.
+ */
+export function ensureDateTicker(): void {
+  if (!tickerInterval) {
+    updateDate();
+    tickerInterval = setInterval(updateDate, 1000);
+    // Unref so the ticker doesn't prevent Node process termination
+    tickerInterval.unref();
+  }
+}
+
+/**
+ * Stops the background date ticker (primarily for cleanup and tests).
+ */
+export function stopDateTicker(): void {
+  if (tickerInterval) {
+    clearInterval(tickerInterval);
+    tickerInterval = null;
+  }
+}
+
+/**
+ * Returns the current cached UTC date string (RFC 7231 / RFC 9110 compliant).
+ */
+export function getCachedDateString(): string {
+  if (!tickerInterval) ensureDateTicker();
+  return cachedDateStr;
+}
+
+/**
+ * Returns the pre-encoded Buffer slice `date: <UTC>\r\n`.
+ */
+export function getCachedDateHeaderBuffer(): Buffer {
+  if (!tickerInterval) ensureDateTicker();
+  return cachedDateHeaderBuffer;
+}
+
+// Common HTTP Status Line Buffers (pre-allocated)
+const STATUS_200 = Buffer.from('HTTP/1.1 200 OK\r\n');
+const STATUS_201 = Buffer.from('HTTP/1.1 201 Created\r\n');
+const STATUS_204 = Buffer.from('HTTP/1.1 204 No Content\r\n');
+const STATUS_400 = Buffer.from('HTTP/1.1 400 Bad Request\r\n');
+const STATUS_404 = Buffer.from('HTTP/1.1 404 Not Found\r\n');
+const STATUS_500 = Buffer.from('HTTP/1.1 500 Internal Server Error\r\n');
+
+const CONN_KEEP_ALIVE = Buffer.from('connection: keep-alive\r\n');
+const CRLF = Buffer.from('\r\n');
+
+/**
+ * Assembles an atomic, zero-copy HTTP/1.1 response wire frame.
+ */
+export function buildHttpFrame(
+  statusCode: number,
+  contentType: string,
+  body: Buffer | Uint8Array | string,
+  extraHeaders?: Record<string, string>
+): Buffer {
+  let statusBuf: Buffer;
+  switch (statusCode) {
+    case 200: statusBuf = STATUS_200; break;
+    case 201: statusBuf = STATUS_201; break;
+    case 204: statusBuf = STATUS_204; break;
+    case 400: statusBuf = STATUS_400; break;
+    case 404: statusBuf = STATUS_404; break;
+    case 500: statusBuf = STATUS_500; break;
+    default: statusBuf = Buffer.from(`HTTP/1.1 ${statusCode} Response\r\n`); break;
+  }
+
+  const bodyBuf = typeof body === 'string'
+    ? Buffer.from(body)
+    : (Buffer.isBuffer(body) ? body : Buffer.from(body));
+
+  const dateBuf = getCachedDateHeaderBuffer();
+  const ctBuf = Buffer.from(`content-type: ${contentType}\r\ncontent-length: ${bodyBuf.length}\r\n`);
+
+  let extraBuf: Buffer | null = null;
+  if (extraHeaders) {
+    const keys = Object.keys(extraHeaders);
+    if (keys.length > 0) {
+      let str = '';
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i]!;
+        str += `${k.toLowerCase()}: ${extraHeaders[k]}\r\n`;
+      }
+      extraBuf = Buffer.from(str);
+    }
+  }
+
+  if (extraBuf) {
+    return Buffer.concat([
+      statusBuf,
+      dateBuf,
+      CONN_KEEP_ALIVE,
+      ctBuf,
+      extraBuf,
+      CRLF,
+      bodyBuf
+    ]);
+  }
+
+  return Buffer.concat([
+    statusBuf,
+    dateBuf,
+    CONN_KEEP_ALIVE,
+    ctBuf,
+    CRLF,
+    bodyBuf
+  ]);
+}
