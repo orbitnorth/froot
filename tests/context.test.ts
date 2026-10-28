@@ -158,4 +158,42 @@ describe('Context & Request Abstraction', () => {
     assert.equal(res3.status, 303);
     assert.equal(res3.headers.get('location'), '/other');
   });
+
+  it('should parse incoming request cookies lazily and accurately', async () => {
+    const app = new Froot();
+    app.get('/cookies', (c) => {
+      const session = c.req.cookie('session');
+      const theme = c.req.cookie('theme');
+      const missing = c.req.cookie('missing');
+      const all = c.req.cookie();
+      return c.json({ session, theme, missing, all });
+    });
+
+    // 1. With multiple cookies including encoded and quoted values
+    const reqWithCookies = new Request('http://localhost/cookies', {
+      headers: {
+        cookie: 'session=xyz789; theme=dark; encoded=%7B%22ok%22%3Atrue%7D; quoted="spaced value"'
+      }
+    });
+
+    const res1 = await app.fetch(reqWithCookies);
+    assert.equal(res1.status, 200);
+    const body1 = await res1.json();
+    assert.equal(body1.session, 'xyz789');
+    assert.equal(body1.theme, 'dark');
+    assert.equal(body1.missing, undefined);
+    assert.deepEqual(body1.all, {
+      session: 'xyz789',
+      theme: 'dark',
+      encoded: '{"ok":true}',
+      quoted: 'spaced value'
+    });
+
+    // 2. Without cookie header
+    const reqNoCookies = new Request('http://localhost/cookies');
+    const res2 = await app.fetch(reqNoCookies);
+    const body2 = await res2.json();
+    assert.equal(body2.session, undefined);
+    assert.deepEqual(body2.all, {});
+  });
 });

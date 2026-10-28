@@ -56,6 +56,20 @@ export interface ExecutionContext {
 export type Next = () => Promise<void>;
 
 /**
+ * Cookie options for setting and serializing HTTP cookies (RFC 6265).
+ */
+export interface CookieOptions {
+  domain?: string | undefined;
+  expires?: Date | undefined;
+  httpOnly?: boolean | undefined;
+  maxAge?: number | undefined;
+  path?: string | undefined;
+  secure?: boolean | undefined;
+  sameSite?: 'Strict' | 'Lax' | 'None' | 'strict' | 'lax' | 'none' | undefined;
+  partitioned?: boolean | undefined;
+}
+
+/**
  * Structural interface for the request abstraction in Froot.
  */
 export interface RequestContext<TPath extends string = string> {
@@ -68,6 +82,9 @@ export interface RequestContext<TPath extends string = string> {
   param<K extends ExtractParamNames<TPath>>(name: K): string;
   param(name: string): string | undefined;
   query(key?: string): string | undefined | Record<string, string | undefined>;
+  cookie(name: string): string | undefined;
+  cookie(): Record<string, string>;
+  cookie(name?: string): string | undefined | Record<string, string>;
   header(name: string): string | undefined;
   readonly headers: Record<string, string | undefined>;
   json<T = unknown>(): Promise<T>;

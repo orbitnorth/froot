@@ -14,10 +14,41 @@ import type {
   RouteParams
 } from '../types/index.js';
 
+function parseCookies(headerStr: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  let start = 0;
+  const len = headerStr.length;
+  while (start < len) {
+    while (start < len && headerStr.charCodeAt(start) === 32) start++;
+    if (start >= len) break;
+
+    const eqIdx = headerStr.indexOf('=', start);
+    if (eqIdx === -1) break;
+
+    let semiIdx = headerStr.indexOf(';', eqIdx);
+    if (semiIdx === -1) semiIdx = len;
+
+    const key = headerStr.slice(start, eqIdx).trim();
+    let val = headerStr.slice(eqIdx + 1, semiIdx).trim();
+    if (val.charCodeAt(0) === 34 && val.charCodeAt(val.length - 1) === 34) {
+      val = val.slice(1, -1);
+    }
+    try {
+      result[key] = val.includes('%') ? decodeURIComponent(val) : val;
+    } catch {
+      result[key] = val;
+    }
+
+    start = semiIdx + 1;
+  }
+  return result;
+}
+
 export class FrootRequest<TPath extends string = string> implements RequestContext<TPath> {
   public readonly raw: Request;
   public readonly params: RouteParams<TPath>;
   private _queryCache: Record<string, string | undefined> | undefined = undefined;
+  private _cookieCache: Record<string, string> | undefined = undefined;
   private _headerCache: Record<string, string | undefined> | undefined = undefined;
   private _urlObj: URL | undefined = undefined;
 
@@ -75,6 +106,22 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
       return this._queryCache[key];
     }
     return this._queryCache;
+  }
+
+  /**
+   * Lazily parses cookies from the incoming Cookie header.
+   */
+  public cookie(name: string): string | undefined;
+  public cookie(): Record<string, string>;
+  public cookie(name?: string): string | undefined | Record<string, string> {
+    if (!this._cookieCache) {
+      const headerStr = this.raw.headers.get('cookie');
+      this._cookieCache = headerStr ? parseCookies(headerStr) : {};
+    }
+    if (name !== undefined) {
+      return this._cookieCache[name];
+    }
+    return this._cookieCache;
   }
 
   /**
