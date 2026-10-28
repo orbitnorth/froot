@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { Froot } from 'froot';
-import { cors, security, timing, logger } from 'froot/middleware';
+import { cors, security, timing, logger, etag } from 'froot/middleware';
 
 describe('Built-in Batteries & Middleware', () => {
   it('should apply CORS headers on regular requests and handle preflight OPTIONS', async () => {
@@ -77,5 +77,47 @@ describe('Built-in Batteries & Middleware', () => {
     assert.equal(res.status, 200);
     assert.ok(logs.length > 0);
     assert.ok(logs.some((l) => l.includes('GET') && l.includes('/log-me')));
+  });
+
+  it('should generate ETags and handle HTTP 304 conditional caching with If-None-Match', async () => {
+    const app = new Froot();
+    app.use('*', etag());
+
+    app.get('/api/resource', (c) => c.json({ data: 'static-content', version: 1 }));
+    app.get('/api/strong', (c) => c.text('strong-etag-data'));
+
+    // 1. Initial request without If-None-Match -> generates 200 with ETag
+    const res1 = await app.fetch(new Request('http://localhost/api/resource'));
+    assert.equal(res1.status, 200);
+    const tag1 = res1.headers.get('etag');
+    assert.ok(tag1, 'ETag should exist');
+    assert.match(tag1, /^W\/"/); // Default is weak ETag
+    assert.deepEqual(await res1.json(), { data: 'static-content', version: 1 });
+
+    // 2. Subsequent request with matching If-None-Match -> returns 304 Not Modified
+    const res2 = await app.fetch(new Request('http://localhost/api/resource', {
+      headers: { 'if-none-match': tag1! }
+    }));
+    assert.equal(res2.status, 304);
+    assert.equal(res2.headers.get('etag'), tag1);
+    assert.equal(await res2.text(), ''); // Body must be empty on 304
+
+    // 3. Request with mismatched If-None-Match -> returns 200 with fresh body
+    const res3 = await app.fetch(new Request('http://localhost/api/resource', {
+      headers: { 'if-none-match': 'W/"mismatched-etag-hash"' }
+    }));
+    assert.equal(res3.status, 200);
+    assert.deepEqual(await res3.json(), { data: 'static-content', version: 1 });
+
+    // 4. Test strong ETag option
+    const appStrong = new Froot();
+    appStrong.use('*', etag({ weak: false }));
+    appStrong.get('/strong', (c) => c.text('unmodified'));
+
+    const resStrong = await appStrong.fetch(new Request('http://localhost/strong'));
+    assert.equal(resStrong.status, 200);
+    const strongTag = resStrong.headers.get('etag');
+    assert.ok(strongTag);
+    assert.ok(!strongTag.startsWith('W/'), 'Strong ETag should not start with W/');
   });
 });
