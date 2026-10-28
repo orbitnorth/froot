@@ -91,10 +91,12 @@ export function wireCache(options: WireCacheOptions = {}): MiddlewareHandler<any
     const cachedFrame = store.get(key);
 
     if (cachedFrame) {
-      // Cache hit: Attach raw pre-rendered wire frame directly onto Context
+      // Cache hit: Attach raw pre-rendered wire frame directly onto Context & Response
       (c as unknown as { _wireFrame?: Buffer })._wireFrame = cachedFrame;
       c.header('x-cache', 'HIT');
-      return c.text('', 200);
+      const res = c.text('', 200);
+      (res as unknown as { _wireFrame?: Buffer })._wireFrame = cachedFrame;
+      return res;
     }
 
     await next();
@@ -104,7 +106,12 @@ export function wireCache(options: WireCacheOptions = {}): MiddlewareHandler<any
       const internalRes = (c as unknown as { _res?: Response })._res;
       let bodyBuf: Buffer;
 
-      if (internalRes) {
+      const rawBody = (internalRes as unknown as { _rawBody?: string | Buffer | null })?._rawBody;
+      if (Buffer.isBuffer(rawBody)) {
+        bodyBuf = rawBody;
+      } else if (typeof rawBody === 'string') {
+        bodyBuf = Buffer.from(rawBody);
+      } else if (internalRes) {
         const cloned = internalRes.clone();
         const arrayBuf = await cloned.arrayBuffer();
         bodyBuf = Buffer.from(arrayBuf);

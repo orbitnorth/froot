@@ -41,6 +41,8 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
       isProcessing = true;
 
       try {
+        const responses: Buffer[] = [];
+
         while (buffer.length > 0 && !socket.destroyed) {
           // Scan for end of HTTP headers: \r\n\r\n (0x0D, 0x0A, 0x0D, 0x0A)
           let headerEnd = -1;
@@ -101,11 +103,13 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
           buffer = buffer.subarray(totalReqLen);
 
           // Fast-Path: Zero-Copy Binary Wire Cache Check
-          const cacheKey = `${method}:${fullPath.split('?')[0]}`;
+          const qIndex = fullPath.indexOf('?');
+          const cleanPath = qIndex === -1 ? fullPath : fullPath.slice(0, qIndex);
+          const cacheKey = `${method}:${cleanPath}`;
           const cachedWireFrame = globalWireCache.get(cacheKey);
 
           if (cachedWireFrame) {
-            socket.write(cachedWireFrame);
+            responses.push(cachedWireFrame);
             continue;
           }
 
@@ -157,7 +161,7 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
           // Check if wireFrame was cached by middleware
           const wireFrame = (webRes as unknown as { _wireFrame?: Buffer })._wireFrame;
           if (wireFrame) {
-            socket.write(wireFrame);
+            responses.push(wireFrame);
           } else {
             const extraHeaders: Record<string, string> = {};
             webRes.headers.forEach((val, key) => {
@@ -166,8 +170,19 @@ export function serveFast(app: FetchableApp, options: FastServerOptions = {}): n
               }
             });
             const frame = buildHttpFrame(statusCode, contentType, resBody, extraHeaders);
-            socket.write(frame);
+            responses.push(frame);
           }
+        }
+
+        // Batch-flush all responses with socket corking
+        if (responses.length === 1 && !socket.destroyed) {
+          socket.write(responses[0]!);
+        } else if (responses.length > 1 && !socket.destroyed) {
+          socket.cork();
+          for (let i = 0; i < responses.length; i++) {
+            socket.write(responses[i]!);
+          }
+          socket.uncork();
         }
       } catch {
         if (!socket.destroyed) {

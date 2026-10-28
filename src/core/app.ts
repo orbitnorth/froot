@@ -158,6 +158,12 @@ export class Froot<TEnv extends Env = BlankEnv> {
   public on<P extends string>(
     method: HTTPMethod,
     path: P,
+    options: RouteOptions,
+    ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]
+  ): this;
+  public on<P extends string>(
+    method: HTTPMethod,
+    path: P,
     ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]
   ): this;
   public on<P extends string>(
@@ -193,6 +199,7 @@ export class Froot<TEnv extends Env = BlankEnv> {
 
   public get<P extends string>(path: P, handler: Handler<P, TEnv>): this;
   public get<P extends string>(path: P, options: RouteOptions, handler: Handler<P, TEnv>): this;
+  public get<P extends string>(path: P, options: RouteOptions, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
   public get<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
   public get<P extends string>(path: P, ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
     return this.on('GET', path, ...(args as [Handler<P, TEnv>]));
@@ -200,6 +207,7 @@ export class Froot<TEnv extends Env = BlankEnv> {
 
   public post<P extends string>(path: P, handler: Handler<P, TEnv>): this;
   public post<P extends string>(path: P, options: RouteOptions, handler: Handler<P, TEnv>): this;
+  public post<P extends string>(path: P, options: RouteOptions, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
   public post<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
   public post<P extends string>(path: P, ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
     return this.on('POST', path, ...(args as [Handler<P, TEnv>]));
@@ -412,6 +420,14 @@ export class Froot<TEnv extends Env = BlankEnv> {
       await dispatch(0);
       const internalRes = (c as unknown as { _res?: Response })._res;
       const finalRes = internalRes ?? c.text('', c.statusCode);
+      const wire = (c as unknown as { _wireFrame?: Buffer })._wireFrame;
+      if (wire) {
+        (finalRes as unknown as { _wireFrame: Buffer })._wireFrame = wire;
+      }
+      const rawBody = (internalRes as unknown as { _rawBody?: string | Buffer | null })?._rawBody;
+      if (rawBody !== undefined) {
+        (finalRes as unknown as { _rawBody: string | Buffer | null })._rawBody = rawBody;
+      }
       return syncResponseHeaders(c, finalRes);
     };
   }

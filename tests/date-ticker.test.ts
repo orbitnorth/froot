@@ -56,3 +56,4 @@ describe('Cached Date Ticker & HTTP Frame Assembly', () => {
     assert.ok(frame500.toString('utf-8').startsWith('HTTP/1.1 500 Internal Server Error\r\n'));
   });
 });
+
