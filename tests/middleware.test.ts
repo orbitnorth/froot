@@ -1,7 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Froot } from 'froot';
-import { cors, security, timing, logger, etag, bodyLimit, bearerAuth, rateLimiter } from 'froot/middleware';
+import { cors, security, timing, logger, etag, bodyLimit, bearerAuth, rateLimiter, serveStatic } from 'froot/middleware';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 describe('Built-in Batteries & Middleware', () => {
   it('should apply CORS headers on regular requests and handle preflight OPTIONS', async () => {
@@ -283,5 +288,65 @@ describe('Built-in Batteries & Middleware', () => {
     const customRes2 = await customApp.fetch(new Request('http://localhost/test'));
     assert.equal(customRes2.status, 429);
     assert.equal(await customRes2.text(), 'Calm down!');
+  });
+
+  it('should serve static files securely with ETag and reject path traversal attacks', async () => {
+    const webDir = path.resolve(__dirname, '../web');
+    const app = new Froot();
+
+    app.use('/*', serveStatic({
+      root: webDir,
+      index: 'index.html',
+      cacheControl: 'public, max-age=3600',
+    }));
+
+    app.get('/api/fallback', (c) => c.json({ api: 'fallback-reached' }));
+
+    // 1. Serve index.html on root request
+    const resRoot = await app.fetch(new Request('http://localhost/'));
+    assert.equal(resRoot.status, 200);
+    assert.equal(resRoot.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.ok(resRoot.headers.get('etag'), 'ETag header should be present');
+    assert.ok(resRoot.headers.get('last-modified'), 'Last-Modified header should be present');
+    assert.equal(resRoot.headers.get('cache-control'), 'public, max-age=3600');
+    const rootHtml = await resRoot.text();
+    assert.ok(rootHtml.includes('Froot'), 'index.html content should be returned');
+
+    // 2. HTTP 304 conditional request with If-None-Match
+    const etagValue = resRoot.headers.get('etag')!;
+    const res304 = await app.fetch(new Request('http://localhost/', {
+      headers: { 'if-none-match': etagValue }
+    }));
+    assert.equal(res304.status, 304);
+    assert.equal(await res304.text(), '');
+
+    // 3. Serve CSS stylesheet
+    const resCss = await app.fetch(new Request('http://localhost/styles.css'));
+    assert.equal(resCss.status, 200);
+    assert.equal(resCss.headers.get('content-type'), 'text/css; charset=utf-8');
+
+    // 4. Fallthrough to dynamic API route when static file not found
+    const resDynamic = await app.fetch(new Request('http://localhost/api/fallback'));
+    assert.equal(resDynamic.status, 200);
+    assert.deepEqual(await resDynamic.json(), { api: 'fallback-reached' });
+
+    // 5. Defend against path traversal attack (e.g. ../package.json)
+    const resTraversal = await app.fetch(new Request('http://localhost/../../package.json'));
+    // Traversal is blocked from exiting root; falls through to 404
+    assert.equal(resTraversal.status, 404);
+
+    // 6. Defend against percent-encoded traversal (%2e%2e)
+    const resEncodedTraversal = await app.fetch(new Request('http://localhost/%2e%2e/%2e%2e/package.json'));
+    assert.equal(resEncodedTraversal.status, 404);
+
+    // 7. Defend against null-byte injection
+    const resNullByte = await app.fetch(new Request('http://localhost/index.html%00.png'));
+    assert.equal(resNullByte.status, 404);
+
+    // 8. HEAD request should return headers without body
+    const resHead = await app.fetch(new Request('http://localhost/styles.css', { method: 'HEAD' }));
+    assert.equal(resHead.status, 200);
+    assert.equal(resHead.headers.get('content-type'), 'text/css; charset=utf-8');
+    assert.equal(await resHead.text(), '');
   });
 });
