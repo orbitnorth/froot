@@ -15,6 +15,7 @@ import type {
   RouteParams
 } from '../types/index.js';
 import { signValue, verifySignedValue } from '../utils/crypto.js';
+import { fastExtractPathname, fastParseQuery } from '../utils/url.js';
 
 function parseCookies(headerStr: string): Record<string, string> {
   const result: Record<string, string> = {};
@@ -95,6 +96,7 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
   private _cookieCache: Record<string, string> | undefined = undefined;
   private _headerCache: Record<string, string | undefined> | undefined = undefined;
   private _urlObj: URL | undefined = undefined;
+  private _path: string | undefined = undefined;
 
   constructor(raw: Request, params: Record<string, string> = {}) {
     this.raw = raw;
@@ -110,7 +112,7 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
   }
 
   /**
-   * Lazily parsed URL object.
+   * Lazily parsed URL object for backwards compatibility.
    */
   public get parsedUrl(): URL {
     if (!this._urlObj) {
@@ -119,8 +121,14 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
     return this._urlObj;
   }
 
+  /**
+   * High-speed, zero-allocation path resolution without invoking new URL().
+   */
   public get path(): string {
-    return this.parsedUrl.pathname;
+    if (this._path === undefined) {
+      this._path = fastExtractPathname(this.raw.url);
+    }
+    return this._path;
   }
 
   /**
@@ -134,16 +142,12 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
   }
 
   /**
-   * Lazily parses query parameters on first access.
+   * High-speed, zero-allocation query parameter parsing on first access.
+   * Bypasses WHATWG new URL() using linear token scanning.
    */
   public query(key?: string): string | undefined | Record<string, string | undefined> {
     if (!this._queryCache) {
-      const cache: Record<string, string | undefined> = {};
-      const searchParams = this.parsedUrl.searchParams;
-      for (const [k, v] of searchParams.entries()) {
-        cache[k] = v;
-      }
-      this._queryCache = cache;
+      this._queryCache = fastParseQuery(this.raw.url);
     }
 
     if (key !== undefined) {

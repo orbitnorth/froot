@@ -41,9 +41,11 @@ describe('Context & Request Abstraction', () => {
       const q = c.req.query('q');
       const page = c.req.query('page');
       const all = c.req.query();
-      return c.json({ q, page, all });
+      const path = c.req.path;
+      return c.json({ q, page, all, path });
     });
 
+    // 1. Basic query parameters and path
     const res = await app.fetch(
       new Request('http://localhost/search?q=typescript&page=2&sort=asc')
     );
@@ -51,11 +53,30 @@ describe('Context & Request Abstraction', () => {
     const body = await res.json();
     assert.equal(body.q, 'typescript');
     assert.equal(body.page, '2');
+    assert.equal(body.path, '/search');
     assert.deepEqual(body.all, {
       q: 'typescript',
       page: '2',
       sort: 'asc'
     });
+
+    // 2. Encoded values, plus sign, and URL fragments
+    const resEncoded = await app.fetch(
+      new Request('http://localhost/search?q=hello%20world&tag=c%2B%2B&name=John+Doe&flag#fragment')
+    );
+    assert.equal(resEncoded.status, 200);
+    const bodyEncoded = await resEncoded.json();
+    assert.equal(bodyEncoded.q, 'hello world');
+    assert.equal(bodyEncoded.all.tag, 'c++');
+    assert.equal(bodyEncoded.all.name, 'John Doe');
+    assert.equal(bodyEncoded.all.flag, '');
+
+    // 3. Request without query parameters
+    const resNoQuery = await app.fetch(new Request('http://localhost/search'));
+    assert.equal(resNoQuery.status, 200);
+    const bodyNoQuery = await resNoQuery.json();
+    assert.equal(bodyNoQuery.q, undefined);
+    assert.deepEqual(bodyNoQuery.all, {});
   });
 
   it('should get and set headers correctly', async () => {
