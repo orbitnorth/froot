@@ -6,6 +6,7 @@
 import cluster from 'node:cluster';
 import os from 'node:os';
 import type { Server } from 'node:http';
+import type { Server as NetServer } from 'node:net';
 import type { FetchableApp, NodeServerOptions } from './node-adapter.js';
 
 export interface ClusterOptions extends NodeServerOptions {
@@ -13,6 +14,7 @@ export interface ClusterOptions extends NodeServerOptions {
   port?: number;
   autoRestart?: boolean;
   silent?: boolean;
+  fast?: boolean;
   onWorkerStart?: (workerId: number, pid: number) => void;
   onWorkerExit?: (workerId: number, code: number, signal: string) => void;
 }
@@ -21,7 +23,7 @@ export interface ClusterController {
   isPrimary: boolean;
   isWorker: boolean;
   workerCount: number;
-  server?: Server | undefined;
+  server?: Server | NetServer | undefined;
   close: () => Promise<void>;
 }
 
@@ -110,8 +112,12 @@ export function startCluster(app: FetchableApp, options: ClusterOptions = {}): C
       close
     };
   } else {
-    // Worker process executes the standard listener
-    const listenFn = (app as unknown as { listen?: (p: number, cb?: () => void, opts?: NodeServerOptions) => Server }).listen;
+    // Worker process executes the standard or fast listener
+    const isFast = options.fast ?? false;
+    const listenFn = isFast
+      ? (app as unknown as { listenFast?: (p: number, cb?: () => void, opts?: any) => NetServer }).listenFast
+      : (app as unknown as { listen?: (p: number, cb?: () => void, opts?: NodeServerOptions) => Server }).listen;
+
     const server = typeof listenFn === 'function'
       ? listenFn.call(app, port, undefined, options)
       : undefined;

@@ -492,4 +492,12 @@ export class Froot<TEnv extends Env = BlankEnv> {
     this.compile();
     return startCluster(this, options);
   }
+
+  /**
+   * Spawns a multi-core cluster running the ultra-fast raw TCP engine across all CPU cores.
+   */
+  public clusterFast(options?: ClusterOptions): ClusterController {
+    this.compile();
+    return startCluster(this, { ...options, fast: true });
+  }
 }
