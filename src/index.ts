@@ -45,6 +45,15 @@ export {
   type SerializerFunction
 } from './schema/serializer.js';
 
+// Zero-Copy Wire Cache
+export {
+  wireCache,
+  WireCacheStore,
+  globalWireCache,
+  type WireCacheOptions,
+  type WireCacheEntry
+} from './cache/wire-cache.js';
+
 // Client RPC
 export { createFrootClient, type ClientProxy } from './client/rpc.js';
 
