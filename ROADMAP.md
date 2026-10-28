@@ -55,3 +55,31 @@ Froot has achieved its initial core milestones:
 ### Phase 4: Monorepo & Documentation Sync
 - [ ] **4.1 Public Exports**: Export all new middleware and cookie utilities from package entrypoints.
 - [ ] **4.2 Documentation**: Add lessons for cookies, caching, rate limiting, and static serving.
+
+---
+
+## 3. Milestone 3: Extreme Performance Engineering (3x to 10x Leap)
+*Goal: Outperform Fastify 5 across all scenarios (50,000+ req/s single-core, 150,000+ req/s multi-core)*
+
+### Phase 5: Zero-Allocation Ingestion & TCP Socket Corking
+- [ ] **5.1 Zero-Copy Lazy Headers**: Read incoming headers on-demand directly from Node's dictionary without instantiating WHATWG `Headers` map.
+- [ ] **5.2 Non-Regex Fast-Querystring Scanner**: Replace `new URL()` allocations with linear pointer index scanning (`req.url.indexOf('?')`).
+- [ ] **5.3 Event-Driven Socket Ingestion**: Replace async iterator `for await` stream chunking with native `req.on('data')` buffers.
+- [ ] **5.4 TCP Response Corking**: Implement `res.cork()` and `res.uncork()` to consolidate header and body writes into a single atomic TCP packet.
+
+### Phase 6: JIT Route Specialization Engine (Sucrose Pattern)
+- [ ] **6.1 Static Handler Dependency Inspector**: Inspect route handler AST/signatures at registration time.
+- [ ] **6.2 Dynamic AOT Dispatcher (`new Function`)**: Synthesize specialized execution functions per route that skip unneeded query, header, or body parsing.
+- [ ] **6.3 Middleware Short-Circuiting**: Flat-path invocation for pure routes without global middleware.
+
+### Phase 7: AOT Schema JSON Serialization
+- [ ] **7.1 Schema-Driven Serializer Compiler**: Pre-compile object-to-string concatenation routines for known response schemas.
+- [ ] **7.2 Fast ASCII String Escaping**: SIMD-friendly branchless character escaping.
+
+### Phase 8: Multi-Core Cluster Engine
+- [ ] **8.1 Built-in `app.cluster({ workers })`**: Zero-downtime rolling reload process cluster.
+- [ ] **8.2 Kernel SO_REUSEPORT Support**: Distribute incoming TCP sockets directly across CPU cores.
+
+### Phase 9: Native Super-Tier Adapter
+- [ ] **9.1 `@froot/adapter-uwebsockets`**: Native C++ uSockets event loop integration delivering 200,000+ req/s.
+- [ ] **9.2 `@froot/adapter-bun`**: Native Bun `Bun.serve` dispatcher.
