@@ -163,7 +163,7 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
   public cookie(): Record<string, string>;
   public cookie(name?: string): string | undefined | Record<string, string> {
     if (!this._cookieCache) {
-      const headerStr = this.raw.headers.get('cookie');
+      const headerStr = this.header('cookie');
       this._cookieCache = headerStr ? parseCookies(headerStr) : {};
     }
     if (name !== undefined) {
@@ -173,9 +173,15 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
   }
 
   /**
-   * Fast header accessor.
+   * Fast header accessor with zero-copy raw dictionary fast-path.
    */
   public header(name: string): string | undefined {
+    const rawH = (this.raw as unknown as { _rawHeaders?: Record<string, string | string[] | undefined> })._rawHeaders;
+    if (rawH) {
+      const val = rawH[name.toLowerCase()];
+      if (val === undefined) return undefined;
+      return Array.isArray(val) ? val.join(', ') : val;
+    }
     return this.raw.headers.get(name) ?? undefined;
   }
 

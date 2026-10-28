@@ -7,6 +7,7 @@ import * as http from 'node:http';
 import type { Socket } from 'node:net';
 import { Readable } from 'node:stream';
 import type { TLSSocket } from 'node:tls';
+import { LazyHeaders } from '../utils/headers.js';
 
 export interface FetchableApp {
   fetch(request: Request, env?: unknown, executionCtx?: unknown): Promise<Response>;
@@ -40,16 +41,7 @@ export function serve(app: FetchableApp, options: NodeServerOptions = {}): http.
       const method = req.method || 'GET';
       const hasBody = method !== 'GET' && method !== 'HEAD';
 
-      const headers = new Headers();
-      for (const k in req.headers) {
-        const v = req.headers[k];
-        if (v === undefined) continue;
-        if (Array.isArray(v)) {
-          for (const item of v) headers.append(k, item);
-        } else {
-          headers.set(k, v);
-        }
-      }
+      const headers = new LazyHeaders(req.headers);
 
       let body: BodyInit | null = null;
       let rawBuffer: Buffer | null = null;
@@ -64,10 +56,11 @@ export function serve(app: FetchableApp, options: NodeServerOptions = {}): http.
 
       const webReq = new Request(url, {
         method,
-        headers,
+        headers: headers as unknown as HeadersInit,
         body
       });
 
+      (webReq as unknown as { _rawHeaders?: typeof req.headers })._rawHeaders = req.headers;
       if (rawBuffer) {
         (webReq as unknown as { _rawBodyBuffer?: Buffer | null })._rawBodyBuffer = rawBuffer;
       }
