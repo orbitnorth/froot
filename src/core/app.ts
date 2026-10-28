@@ -146,7 +146,23 @@ export class Froot<TEnv extends Env = BlankEnv> {
   public on<P extends string>(
     method: HTTPMethod,
     path: P,
-    ...args: unknown[]
+    handler: Handler<P, TEnv>
+  ): this;
+  public on<P extends string>(
+    method: HTTPMethod,
+    path: P,
+    options: RouteOptions,
+    handler: Handler<P, TEnv>
+  ): this;
+  public on<P extends string>(
+    method: HTTPMethod,
+    path: P,
+    ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]
+  ): this;
+  public on<P extends string>(
+    method: HTTPMethod,
+    path: P,
+    ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]
   ): this {
     let serializer: ((data: any) => string) | undefined = undefined;
     let handlers = args;
@@ -174,24 +190,39 @@ export class Froot<TEnv extends Env = BlankEnv> {
     return this;
   }
 
-  public get<P extends string>(path: P, ...args: unknown[]): this {
-    return this.on('GET', path, ...args);
+  public get<P extends string>(path: P, handler: Handler<P, TEnv>): this;
+  public get<P extends string>(path: P, options: RouteOptions, handler: Handler<P, TEnv>): this;
+  public get<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
+  public get<P extends string>(path: P, ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+    return this.on('GET', path, ...(args as [Handler<P, TEnv>]));
   }
 
-  public post<P extends string>(path: P, ...args: unknown[]): this {
-    return this.on('POST', path, ...args);
+  public post<P extends string>(path: P, handler: Handler<P, TEnv>): this;
+  public post<P extends string>(path: P, options: RouteOptions, handler: Handler<P, TEnv>): this;
+  public post<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
+  public post<P extends string>(path: P, ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+    return this.on('POST', path, ...(args as [Handler<P, TEnv>]));
   }
 
-  public put<P extends string>(path: P, ...args: unknown[]): this {
-    return this.on('PUT', path, ...args);
+  public put<P extends string>(path: P, handler: Handler<P, TEnv>): this;
+  public put<P extends string>(path: P, options: RouteOptions, handler: Handler<P, TEnv>): this;
+  public put<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
+  public put<P extends string>(path: P, ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+    return this.on('PUT', path, ...(args as [Handler<P, TEnv>]));
   }
 
-  public delete<P extends string>(path: P, ...args: unknown[]): this {
-    return this.on('DELETE', path, ...args);
+  public delete<P extends string>(path: P, handler: Handler<P, TEnv>): this;
+  public delete<P extends string>(path: P, options: RouteOptions, handler: Handler<P, TEnv>): this;
+  public delete<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
+  public delete<P extends string>(path: P, ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+    return this.on('DELETE', path, ...(args as [Handler<P, TEnv>]));
   }
 
-  public patch<P extends string>(path: P, ...args: unknown[]): this {
-    return this.on('PATCH', path, ...args);
+  public patch<P extends string>(path: P, handler: Handler<P, TEnv>): this;
+  public patch<P extends string>(path: P, options: RouteOptions, handler: Handler<P, TEnv>): this;
+  public patch<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
+  public patch<P extends string>(path: P, ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+    return this.on('PATCH', path, ...(args as [Handler<P, TEnv>]));
   }
 
   /**
