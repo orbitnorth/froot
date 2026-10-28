@@ -383,7 +383,7 @@ export class Froot<TEnv extends Env = BlankEnv> {
     env?: unknown,
     executionCtx?: unknown
   ): Promise<Response> => {
-    const pathname = extractPathname(request.url);
+    const pathname = (request as unknown as { _pathname?: string })._pathname ?? extractPathname(request.url);
     const method = request.method as HTTPMethod;
 
     // 1. Match route

@@ -126,7 +126,8 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
    */
   public get path(): string {
     if (this._path === undefined) {
-      this._path = fastExtractPathname(this.raw.url);
+      const rawPath = (this.raw as unknown as { _pathname?: string })._pathname;
+      this._path = rawPath !== undefined ? rawPath : fastExtractPathname(this.raw.url);
     }
     return this._path;
   }
@@ -147,7 +148,8 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
    */
   public query(key?: string): string | undefined | Record<string, string | undefined> {
     if (!this._queryCache) {
-      this._queryCache = fastParseQuery(this.raw.url);
+      const rawUrl = (this.raw as unknown as { _reqUrl?: string })._reqUrl ?? this.raw.url;
+      this._queryCache = fastParseQuery(rawUrl);
     }
 
     if (key !== undefined) {
