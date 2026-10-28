@@ -73,8 +73,23 @@ export function serve(app: FetchableApp, options: NodeServerOptions = {}): http.
       res.statusCode = webRes.status;
 
       webRes.headers.forEach((val: string, key: string) => {
-        res.setHeader(key, val);
+        if (key.toLowerCase() !== 'set-cookie') {
+          res.setHeader(key, val);
+        }
       });
+
+      // Write Set-Cookie headers properly to Node response as an array
+      if (typeof (webRes.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie === 'function') {
+        const cookies = (webRes.headers as unknown as { getSetCookie: () => string[] }).getSetCookie();
+        if (cookies.length > 0) {
+          res.setHeader('set-cookie', cookies);
+        }
+      } else {
+        const cookie = webRes.headers.get('set-cookie');
+        if (cookie) {
+          res.setHeader('set-cookie', cookie);
+        }
+      }
 
       // Fast-path: direct string body (bypasses Web Streams pipe)
       const rawBody = (webRes as unknown as { _rawBody?: string | null })._rawBody;

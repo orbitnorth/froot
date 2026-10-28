@@ -120,6 +120,8 @@ export interface Context<
     key: K,
     value: V
   ): Context<TPath, TEnv & { Variables: { [P in K]: V } }>;
+  cookie(name: string, value: string, options?: CookieOptions): this;
+  deleteCookie(name: string, options?: CookieOptions): this;
   json<T>(data: T, status?: StatusCode, headers?: HeadersInit): Response;
   text(text: string, status?: StatusCode, headers?: HeadersInit): Response;
   html(html: string, status?: StatusCode, headers?: HeadersInit): Response;

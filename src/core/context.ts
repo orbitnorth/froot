@@ -7,6 +7,7 @@ import type { StatusCode } from '../types/http.js';
 import type {
   BlankEnv,
   Context,
+  CookieOptions,
   Env,
   ExecutionContext,
   ExtractParamNames,
@@ -42,6 +43,48 @@ function parseCookies(headerStr: string): Record<string, string> {
     start = semiIdx + 1;
   }
   return result;
+}
+
+function serializeCookie(name: string, value: string, options: CookieOptions = {}): string {
+  let cookieStr = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
+
+  if (options.maxAge !== undefined) {
+    cookieStr += `; Max-Age=${Math.floor(options.maxAge)}`;
+  }
+
+  if (options.domain) {
+    cookieStr += `; Domain=${options.domain}`;
+  }
+
+  if (options.path) {
+    cookieStr += `; Path=${options.path}`;
+  } else {
+    cookieStr += '; Path=/';
+  }
+
+  if (options.expires) {
+    cookieStr += `; Expires=${options.expires.toUTCString()}`;
+  }
+
+  if (options.httpOnly) {
+    cookieStr += '; HttpOnly';
+  }
+
+  if (options.secure) {
+    cookieStr += '; Secure';
+  }
+
+  if (options.sameSite) {
+    const s = options.sameSite;
+    const sameSite = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+    cookieStr += `; SameSite=${sameSite}`;
+  }
+
+  if (options.partitioned) {
+    cookieStr += '; Partitioned';
+  }
+
+  return cookieStr;
 }
 
 export class FrootRequest<TPath extends string = string> implements RequestContext<TPath> {
@@ -262,6 +305,26 @@ export class FrootContext<
   ): Context<TPath, TEnv & { Variables: { [P in K]: V } }> {
     (this._state as Record<string, unknown>)[key] = value;
     return this as unknown as Context<TPath, TEnv & { Variables: { [P in K]: V } }>;
+  }
+
+  /**
+   * Sets an outgoing cookie using RFC 6265 Set-Cookie header.
+   */
+  public cookie(name: string, value: string, options?: CookieOptions): this {
+    const serialized = serializeCookie(name, value, options);
+    this.responseHeaders.append('set-cookie', serialized);
+    return this;
+  }
+
+  /**
+   * Deletes a cookie by expiring it immediately (Max-Age=0).
+   */
+  public deleteCookie(name: string, options?: CookieOptions): this {
+    return this.cookie(name, '', {
+      ...options,
+      maxAge: 0,
+      expires: new Date(0)
+    });
   }
 
   /**

@@ -268,9 +268,16 @@ export class Froot<TEnv extends Env = BlankEnv> {
           res = internalRes ?? c.text('', c.statusCode);
         }
 
-        c.responseHeaders.forEach((val, key) => {
-          res.headers.set(key, val);
-        });
+        const internalRes = (c as unknown as { _res?: Response })._res;
+        if (res !== internalRes) {
+          c.responseHeaders.forEach((val, key) => {
+            if (key.toLowerCase() === 'set-cookie') {
+              res.headers.append(key, val);
+            } else {
+              res.headers.set(key, val);
+            }
+          });
+        }
         return res;
       } catch (err) {
         return await this.errorHandler(err, c);
@@ -340,10 +347,22 @@ export class Froot<TEnv extends Env = BlankEnv> {
         const internalRes = (c as unknown as { _res?: Response })._res;
         const finalRes = internalRes ?? c.text('', c.statusCode);
 
-        // Synchronize headers from context onto response
+        // Synchronize headers from context onto response (e.g. from post-next middleware)
         c.responseHeaders.forEach((val, key) => {
-          finalRes.headers.set(key, val);
+          if (key.toLowerCase() !== 'set-cookie') {
+            finalRes.headers.set(key, val);
+          }
         });
+
+        if (typeof (c.responseHeaders as unknown as { getSetCookie?: () => string[] }).getSetCookie === 'function') {
+          const cookies = (c.responseHeaders as unknown as { getSetCookie: () => string[] }).getSetCookie();
+          if (cookies.length > 0) {
+            finalRes.headers.delete('set-cookie');
+            for (const cookie of cookies) {
+              finalRes.headers.append('set-cookie', cookie);
+            }
+          }
+        }
 
         return finalRes;
       };

@@ -196,4 +196,57 @@ describe('Context & Request Abstraction', () => {
     assert.equal(body2.session, undefined);
     assert.deepEqual(body2.all, {});
   });
+
+  it('should set and delete response cookies with RFC 6265 attributes', async () => {
+    const app = new Froot();
+
+    app.get('/set-cookies', (c) => {
+      c.cookie('session', 'secret_token_123', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'Strict',
+        maxAge: 3600,
+        path: '/api'
+      });
+      c.cookie('theme', 'dim', {
+        sameSite: 'Lax',
+        domain: 'example.com'
+      });
+      return c.json({ ok: true });
+    });
+
+    app.get('/delete-cookie', (c) => {
+      c.deleteCookie('session', { path: '/api' });
+      return c.text('deleted');
+    });
+
+    // Test 1: Set multiple cookies
+    const res1 = await app.fetch(new Request('http://localhost/set-cookies'));
+    assert.equal(res1.status, 200);
+
+    // Verify Set-Cookie headers using getSetCookie if available, or get
+    const setCookieHeaders = typeof (res1.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie === 'function'
+      ? (res1.headers as unknown as { getSetCookie: () => string[] }).getSetCookie()
+      : [res1.headers.get('set-cookie') || ''];
+
+    const setCookieJoined = setCookieHeaders.join('; ');
+    assert.match(setCookieJoined, /session=secret_token_123/);
+    assert.match(setCookieJoined, /HttpOnly/);
+    assert.match(setCookieJoined, /Secure/);
+    assert.match(setCookieJoined, /SameSite=Strict/);
+    assert.match(setCookieJoined, /Max-Age=3600/);
+    assert.match(setCookieJoined, /Path=\/api/);
+
+    assert.match(setCookieJoined, /theme=dim/);
+    assert.match(setCookieJoined, /Domain=example.com/);
+    assert.match(setCookieJoined, /SameSite=Lax/);
+
+    // Test 2: Delete cookie
+    const res2 = await app.fetch(new Request('http://localhost/delete-cookie'));
+    assert.equal(res2.status, 200);
+    const delCookieHeader = res2.headers.get('set-cookie') || '';
+    assert.match(delCookieHeader, /session=/);
+    assert.match(delCookieHeader, /Max-Age=0/);
+    assert.match(delCookieHeader, /Expires=Thu, 01 Jan 1970/);
+  });
 });
