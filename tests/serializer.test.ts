@@ -148,5 +148,44 @@ describe('AOT Schema JSON Serializer', () => {
     const body = await res.json();
     assert.deepEqual(body, { id: 'item_1', name: 'Ultra Display', price: 349.99 });
   });
+
+  it('should transparently compile and apply AOT serializer when route defines schema.response', async () => {
+    const app = new Froot();
+
+    app.get(
+      '/api/auto-schema',
+      {
+        schema: {
+          response: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              code: { type: 'integer' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      },
+      (c) => {
+        // Return plain object or c.json() - both automatically use the compiled AOT serializer!
+        return c.json({
+          success: true,
+          code: 200,
+          message: 'Transparent AOT Serialization'
+        });
+      }
+    );
+
+    const res = await app.fetch(new Request('http://localhost/api/auto-schema'));
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get('content-type'), 'application/json; charset=utf-8');
+
+    const data = await res.json();
+    assert.deepEqual(data, {
+      success: true,
+      code: 200,
+      message: 'Transparent AOT Serialization'
+    });
+  });
 });
 

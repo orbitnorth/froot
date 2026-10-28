@@ -178,6 +178,7 @@ export interface RouteMatch<THandler = unknown> {
   middleware: MiddlewareHandler[];
   params: Record<string, string>;
   path: string;
+  serializer?: ((data: any) => string) | undefined;
 }
 
 /**

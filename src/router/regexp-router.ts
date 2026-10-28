@@ -14,6 +14,7 @@ interface RegisteredRoute<THandler> {
   paramNames: string[];
   handler: THandler;
   middleware: MiddlewareHandler[];
+  serializer?: ((data: any) => string) | undefined;
 }
 
 interface CompiledMethodRoute<THandler> {
@@ -32,7 +33,8 @@ export class RegExpRouter<THandler = unknown> implements Router<THandler> {
     method: HTTPMethod,
     path: string,
     handler: THandler,
-    middleware: MiddlewareHandler[] = []
+    middleware: MiddlewareHandler[] = [],
+    serializer?: ((data: any) => string) | undefined
   ): void {
     let list = this.uncompiledRoutes.get(method);
     if (!list) {
@@ -55,7 +57,8 @@ export class RegExpRouter<THandler = unknown> implements Router<THandler> {
       path,
       paramNames,
       handler,
-      middleware
+      middleware,
+      serializer
     });
 
     this.isCompiled = false;
@@ -131,7 +134,8 @@ export class RegExpRouter<THandler = unknown> implements Router<THandler> {
           handler: route.handler,
           middleware: route.middleware,
           params,
-          path: route.path
+          path: route.path,
+          serializer: route.serializer
         };
       }
     }

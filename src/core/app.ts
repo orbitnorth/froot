@@ -17,6 +17,15 @@ import { ContextPool } from './context.js';
 import { HTTPException } from './errors.js';
 import { serve, type NodeServerOptions } from './node-adapter.js';
 import { startCluster, type ClusterOptions, type ClusterController } from './cluster.js';
+import { compileSerializer, type JSONSchema } from '../schema/serializer.js';
+
+export interface RouteSchemaOptions {
+  response?: JSONSchema | undefined;
+}
+
+export interface RouteOptions {
+  schema?: RouteSchemaOptions | undefined;
+}
 
 type AnyHandler = (
   c: Context<string, Env>
@@ -27,6 +36,7 @@ type RouteRegistration = {
   path: string;
   handler: AnyHandler;
   middleware: MiddlewareHandler[];
+  serializer?: ((data: any) => string) | undefined;
 };
 
 function matchesPrefix(pathname: string, prefix?: string): boolean {
@@ -136,56 +146,52 @@ export class Froot<TEnv extends Env = BlankEnv> {
   public on<P extends string>(
     method: HTTPMethod,
     path: P,
-    handler: Handler<P, TEnv>
-  ): this;
-  public on<P extends string>(
-    method: HTTPMethod,
-    path: P,
-    ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]
-  ): this;
-  public on<P extends string>(
-    method: HTTPMethod,
-    path: P,
-    ...handlers: (MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]
+    ...args: unknown[]
   ): this {
+    let serializer: ((data: any) => string) | undefined = undefined;
+    let handlers = args;
+
+    if (
+      handlers.length > 1 &&
+      typeof handlers[0] === 'object' &&
+      handlers[0] !== null &&
+      'schema' in (handlers[0] as Record<string, unknown>)
+    ) {
+      const opts = handlers[0] as RouteOptions;
+      if (opts.schema?.response) {
+        serializer = compileSerializer(opts.schema.response);
+      }
+      handlers = handlers.slice(1);
+    }
+
     const handler = handlers[handlers.length - 1] as Handler<P, TEnv>;
     const middleware = handlers.slice(0, -1) as MiddlewareHandler[];
 
     const anyHandler = handler as unknown as AnyHandler;
-    this.registeredRoutes.push({ method, path, handler: anyHandler, middleware });
-    this.router.add(method, path, anyHandler, middleware);
+    this.registeredRoutes.push({ method, path, handler: anyHandler, middleware, serializer });
+    this.router.add(method, path, anyHandler, middleware, serializer);
     this.runnerCache.clear();
     return this;
   }
 
-  public get<P extends string>(path: P, handler: Handler<P, TEnv>): this;
-  public get<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
-  public get<P extends string>(path: P, ...handlers: (MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
-    return this.on('GET', path, ...(handlers as [Handler<P, TEnv>]));
+  public get<P extends string>(path: P, ...args: unknown[]): this {
+    return this.on('GET', path, ...args);
   }
 
-  public post<P extends string>(path: P, handler: Handler<P, TEnv>): this;
-  public post<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
-  public post<P extends string>(path: P, ...handlers: (MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
-    return this.on('POST', path, ...(handlers as [Handler<P, TEnv>]));
+  public post<P extends string>(path: P, ...args: unknown[]): this {
+    return this.on('POST', path, ...args);
   }
 
-  public put<P extends string>(path: P, handler: Handler<P, TEnv>): this;
-  public put<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
-  public put<P extends string>(path: P, ...handlers: (MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
-    return this.on('PUT', path, ...(handlers as [Handler<P, TEnv>]));
+  public put<P extends string>(path: P, ...args: unknown[]): this {
+    return this.on('PUT', path, ...args);
   }
 
-  public delete<P extends string>(path: P, handler: Handler<P, TEnv>): this;
-  public delete<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
-  public delete<P extends string>(path: P, ...handlers: (MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
-    return this.on('DELETE', path, ...(handlers as [Handler<P, TEnv>]));
+  public delete<P extends string>(path: P, ...args: unknown[]): this {
+    return this.on('DELETE', path, ...args);
   }
 
-  public patch<P extends string>(path: P, handler: Handler<P, TEnv>): this;
-  public patch<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
-  public patch<P extends string>(path: P, ...handlers: (MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
-    return this.on('PATCH', path, ...(handlers as [Handler<P, TEnv>]));
+  public patch<P extends string>(path: P, ...args: unknown[]): this {
+    return this.on('PATCH', path, ...args);
   }
 
   /**
@@ -277,6 +283,7 @@ export class Froot<TEnv extends Env = BlankEnv> {
       ? match.handler
       : (c) => this.notFoundHandler(c as Context<string, TEnv>);
 
+    const serializer = match?.serializer;
     const len = middlewares.length;
 
     const syncResponseHeaders = (c: Context<string, TEnv>, finalRes: Response): Response => {
@@ -302,12 +309,13 @@ export class Froot<TEnv extends Env = BlankEnv> {
     // Specialized fast-path: zero middleware
     if (len === 0) {
       return async (c: Context<string, TEnv>): Promise<Response> => {
+        if (serializer) (c as unknown as { _serializer?: typeof serializer })._serializer = serializer;
         const result = await terminalHandler(c);
         let res: Response;
         if (result instanceof Response) {
           res = result;
         } else if (typeof result === 'object' && result !== null) {
-          res = c.json(result);
+          res = serializer ? c.serialize(result, serializer) : c.json(result);
         } else if (typeof result === 'string') {
           res = c.text(result);
         } else {
@@ -322,12 +330,13 @@ export class Froot<TEnv extends Env = BlankEnv> {
     if (len === 1) {
       const m0 = middlewares[0]!;
       return async (c: Context<string, TEnv>): Promise<Response> => {
+        if (serializer) (c as unknown as { _serializer?: typeof serializer })._serializer = serializer;
         const res = await m0(c, async () => {
           const result = await terminalHandler(c);
           if (result instanceof Response) {
             (c as unknown as { _res?: Response })._res = result;
           } else if (typeof result === 'object' && result !== null) {
-            (c as unknown as { _res?: Response })._res = c.json(result);
+            (c as unknown as { _res?: Response })._res = serializer ? c.serialize(result, serializer) : c.json(result);
           } else if (typeof result === 'string') {
             (c as unknown as { _res?: Response })._res = c.text(result);
           }
@@ -343,6 +352,7 @@ export class Froot<TEnv extends Env = BlankEnv> {
 
     // Pre-allocated N-middleware onion runner
     return async (c: Context<string, TEnv>): Promise<Response> => {
+      if (serializer) (c as unknown as { _serializer?: typeof serializer })._serializer = serializer;
       let index = -1;
       const dispatch = async (i: number): Promise<void> => {
         if (i <= index) {
@@ -360,7 +370,7 @@ export class Froot<TEnv extends Env = BlankEnv> {
           if (result instanceof Response) {
             (c as unknown as { _res?: Response })._res = result;
           } else if (typeof result === 'object' && result !== null) {
-            (c as unknown as { _res?: Response })._res = c.json(result);
+            (c as unknown as { _res?: Response })._res = serializer ? c.serialize(result, serializer) : c.json(result);
           } else if (typeof result === 'string') {
             (c as unknown as { _res?: Response })._res = c.text(result);
           }

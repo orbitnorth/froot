@@ -11,6 +11,7 @@ interface StaticEntry<THandler> {
   handler: THandler;
   middleware: MiddlewareHandler[];
   path: string;
+  serializer?: ((data: any) => string) | undefined;
 }
 
 export class StaticMapRouter<THandler = unknown> implements Router<THandler> {
@@ -22,14 +23,15 @@ export class StaticMapRouter<THandler = unknown> implements Router<THandler> {
     method: HTTPMethod,
     path: string,
     handler: THandler,
-    middleware: MiddlewareHandler[] = []
+    middleware: MiddlewareHandler[] = [],
+    serializer?: ((data: any) => string) | undefined
   ): void {
     let methodMap = this.routes.get(method);
     if (!methodMap) {
       methodMap = new Map();
       this.routes.set(method, methodMap);
     }
-    methodMap.set(path, { handler, middleware, path });
+    methodMap.set(path, { handler, middleware, path, serializer });
   }
 
   public match(method: HTTPMethod, pathname: string): RouteMatch<THandler> | null {
@@ -43,7 +45,8 @@ export class StaticMapRouter<THandler = unknown> implements Router<THandler> {
       handler: entry.handler,
       middleware: entry.middleware,
       params: {},
-      path: entry.path
+      path: entry.path,
+      serializer: entry.serializer
     };
   }
 }

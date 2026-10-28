@@ -14,7 +14,7 @@ interface RadixNode<THandler> {
   children: Map<string, RadixNode<THandler>>;
   wildcardChild?: RadixNode<THandler>;
   catchAllChild?: RadixNode<THandler>;
-  handlers: Map<HTTPMethod, { handler: THandler; middleware: MiddlewareHandler[]; path: string }>;
+  handlers: Map<HTTPMethod, { handler: THandler; middleware: MiddlewareHandler[]; path: string; serializer?: ((data: any) => string) | undefined }>;
 }
 
 function createNode<THandler>(segment = ''): RadixNode<THandler> {
@@ -34,7 +34,8 @@ export class RadixRouter<THandler = unknown> implements Router<THandler> {
     method: HTTPMethod,
     path: string,
     handler: THandler,
-    middleware: MiddlewareHandler[] = []
+    middleware: MiddlewareHandler[] = [],
+    serializer?: ((data: any) => string) | undefined
   ): void {
     const segments = path.split('/').filter(Boolean);
     let current = this.root;
@@ -72,7 +73,7 @@ export class RadixRouter<THandler = unknown> implements Router<THandler> {
       }
     }
 
-    current.handlers.set(method, { handler, middleware, path });
+    current.handlers.set(method, { handler, middleware, path, serializer });
   }
 
   public match(method: HTTPMethod, pathname: string): RouteMatch<THandler> | null {
@@ -129,7 +130,8 @@ export class RadixRouter<THandler = unknown> implements Router<THandler> {
       handler: entry.handler,
       middleware: entry.middleware,
       params,
-      path: entry.path
+      path: entry.path,
+      serializer: entry.serializer
     };
   }
 }

@@ -11,7 +11,8 @@ export interface Router<THandler = unknown> {
     method: HTTPMethod,
     path: string,
     handler: THandler,
-    middleware?: MiddlewareHandler[]
+    middleware?: MiddlewareHandler[],
+    serializer?: ((data: any) => string) | undefined
   ): void;
   match(method: HTTPMethod, pathname: string): RouteMatch<THandler> | null;
   compile?(): void;

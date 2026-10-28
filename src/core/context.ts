@@ -269,6 +269,7 @@ export class FrootContext<
   private _state!: NonNullable<TEnv['Variables']>;
   private _res: Response | undefined = undefined;
   public _pendingWaitUntils = 0;
+  public _serializer?: ((data: any) => string) | undefined = undefined;
 
   constructor(
     raw?: Request,
@@ -297,6 +298,7 @@ export class FrootContext<
     this._state = {} as NonNullable<TEnv['Variables']>;
     this._res = undefined;
     this._pendingWaitUntils = 0;
+    this._serializer = undefined;
     this.responseHeaders = new Headers();
   }
 
@@ -304,6 +306,7 @@ export class FrootContext<
     this._state = {} as NonNullable<TEnv['Variables']>;
     this._res = undefined;
     this._pendingWaitUntils = 0;
+    this._serializer = undefined;
   }
 
   public waitUntil(promise: Promise<unknown>): void {
@@ -460,7 +463,7 @@ export class FrootContext<
       }
     }
 
-    const bodyStr = isNoContent ? null : JSON.stringify(data);
+    const bodyStr = isNoContent ? null : (this._serializer ? this._serializer(data) : JSON.stringify(data));
     this._res = new Response(bodyStr, {
       status: code,
       headers: this.responseHeaders

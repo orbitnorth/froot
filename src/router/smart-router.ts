@@ -25,25 +25,26 @@ export class SmartRouter<THandler = unknown> implements Router<THandler> {
     method: HTTPMethod,
     path: string,
     handler: THandler,
-    middleware: MiddlewareHandler[] = []
+    middleware: MiddlewareHandler[] = [],
+    serializer?: ((data: any) => string) | undefined
   ): void {
     const isWildcard = path.includes('*');
     const isParam = path.includes(':');
 
     if (!isWildcard && !isParam) {
       // Tier 1: Static O(1)
-      this.staticRouter.add(method, path, handler, middleware);
+      this.staticRouter.add(method, path, handler, middleware, serializer);
       this.hasStatic = true;
     } else if (isParam && !isWildcard) {
       // Tier 2: Compiled RegExp
-      this.regexpRouter.add(method, path, handler, middleware);
+      this.regexpRouter.add(method, path, handler, middleware, serializer);
       // Also register to radix for edge cases
-      this.radixRouter.add(method, path, handler, middleware);
+      this.radixRouter.add(method, path, handler, middleware, serializer);
       this.hasRegExp = true;
       this.hasRadix = true;
     } else {
       // Tier 3: Radix (Wildcard / Catch-all)
-      this.radixRouter.add(method, path, handler, middleware);
+      this.radixRouter.add(method, path, handler, middleware, serializer);
       this.hasRadix = true;
     }
   }
