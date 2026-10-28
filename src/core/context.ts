@@ -190,10 +190,19 @@ export class FrootRequest<TPath extends string = string> implements RequestConte
   }
 
   public async json<T = unknown>(): Promise<T> {
+    const rawBuf = (this.raw as unknown as { _rawBodyBuffer?: Buffer | string })._rawBodyBuffer;
+    if (rawBuf !== undefined) {
+      if (typeof rawBuf === 'string') return JSON.parse(rawBuf) as T;
+      return JSON.parse(rawBuf.toString('utf-8')) as T;
+    }
     return this.raw.json() as Promise<T>;
   }
 
   public async text(): Promise<string> {
+    const rawBuf = (this.raw as unknown as { _rawBodyBuffer?: Buffer | string })._rawBodyBuffer;
+    if (rawBuf !== undefined) {
+      return typeof rawBuf === 'string' ? rawBuf : rawBuf.toString('utf-8');
+    }
     return this.raw.text();
   }
 

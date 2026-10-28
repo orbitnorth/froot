@@ -52,12 +52,14 @@ export function serve(app: FetchableApp, options: NodeServerOptions = {}): http.
       }
 
       let body: BodyInit | null = null;
+      let rawBuffer: Buffer | null = null;
       if (hasBody) {
         const chunks: Buffer[] = [];
         for await (const chunk of req) {
           chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
         }
-        body = (chunks.length === 1 ? chunks[0]! : (chunks.length > 0 ? Buffer.concat(chunks) : null)) as unknown as BodyInit | null;
+        rawBuffer = chunks.length === 1 ? chunks[0]! : (chunks.length > 0 ? Buffer.concat(chunks) : null);
+        body = rawBuffer as unknown as BodyInit | null;
       }
 
       const webReq = new Request(url, {
@@ -65,6 +67,10 @@ export function serve(app: FetchableApp, options: NodeServerOptions = {}): http.
         headers,
         body
       });
+
+      if (rawBuffer) {
+        (webReq as unknown as { _rawBodyBuffer?: Buffer | null })._rawBodyBuffer = rawBuffer;
+      }
 
       // Dispatch to Froot application
       const webRes = await app.fetch(webReq);
