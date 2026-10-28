@@ -16,6 +16,7 @@ import { SmartRouter } from '../router/smart-router.js';
 import { FrootContext } from './context.js';
 import { HTTPException } from './errors.js';
 import { serve, type NodeServerOptions } from './node-adapter.js';
+import { startCluster, type ClusterOptions, type ClusterController } from './cluster.js';
 
 type AnyHandler = (
   c: Context<string, Env>
@@ -426,5 +427,13 @@ export class Froot<TEnv extends Env = BlankEnv> {
       server.once('listening', callback);
     }
     return server;
+  }
+
+  /**
+   * Spawns a high-performance multi-core cluster scaling across all available CPU cores.
+   */
+  public cluster(options?: ClusterOptions): ClusterController {
+    this.compile();
+    return startCluster(this, options);
   }
 }

@@ -8,6 +8,7 @@ export { FrootContext, FrootRequest } from './core/context.js';
 export { HTTPException } from './core/errors.js';
 export { json, text, html, redirect } from './core/response.js';
 export { serve, type FetchableApp, type NodeServerOptions } from './core/node-adapter.js';
+export { startCluster, getOptimalWorkerCount, type ClusterOptions, type ClusterController } from './core/cluster.js';
 
 // Multi-Runtime Adapters & Utilities
 export { handle as handleAwsLambda } from './adapters/aws-lambda.js';
