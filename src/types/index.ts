@@ -125,6 +125,7 @@ export interface Context<
   getSignedCookie(name: string, secret: string): Promise<string | false | undefined>;
   setSignedCookie(name: string, value: string, secret: string, options?: CookieOptions): Promise<this>;
   json<T>(data: T, status?: StatusCode, headers?: HeadersInit): Response;
+  serialize<T>(data: T, serializer: (data: T) => string, status?: StatusCode, headers?: HeadersInit): Response;
   text(text: string, status?: StatusCode, headers?: HeadersInit): Response;
   html(html: string, status?: StatusCode, headers?: HeadersInit): Response;
   redirect(location: string, status?: StatusCode): Response;

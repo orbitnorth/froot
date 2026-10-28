@@ -25,8 +25,17 @@ export { logger } from './middleware/logger.js';
 export { security } from './middleware/security.js';
 export { timing } from './middleware/timing.js';
 
-// Validation
+// Validation & Serialization
 export { validate } from './schema/validator.js';
+export {
+  compileSerializer,
+  fastEscapeString,
+  type JSONSchema,
+  type JSONObjectSchema,
+  type JSONArraySchema,
+  type JSONSchemaProperty,
+  type SerializerFunction
+} from './schema/serializer.js';
 
 // Client RPC
 export { createFrootClient, type ClientProxy } from './client/rpc.js';
