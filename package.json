@@ -1,6 +1,6 @@
 {
   "name": "frootjs",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "High-performance, ultra-flexible, TypeScript-native web framework",
   "type": "module",
   "main": "./dist/index.js",
