@@ -4,7 +4,7 @@
 
 // 1. Multi-Runtime Code Snippets
 const RUNTIME_SNIPPETS = {
-  node: `import { Froot } from 'froot';
+  node: `import { Froot } from 'frootjs';
 
 const app = new Froot();
 
@@ -22,7 +22,7 @@ app.listen(3000, () => {
   console.log('🍏 Froot server listening on http://localhost:3000');
 });`,
 
-  cloudflare: `import { Froot } from 'froot';
+  cloudflare: `import { Froot } from 'frootjs';
 
 // Strongly typed Cloudflare Workers KV & D1 environment bindings
 interface Env {
@@ -46,7 +46,7 @@ app.get('/data/:key', async (c) => {
 // Export default app for direct edge execution on Cloudflare Workers
 export default app;`,
 
-  bun: `import { Froot } from 'froot';
+  bun: `import { Froot } from 'frootjs';
 
 const app = new Froot();
 
@@ -60,7 +60,7 @@ app.get('/', (c) => {
 // Bun natively serves standard Web Fetch handlers
 export default app; // Or: Bun.serve(app)`,
 
-  deno: `import { Froot } from 'froot';
+  deno: `import { Froot } from 'frootjs';
 
 const app = new Froot();
 
@@ -74,8 +74,8 @@ app.get('/api/metrics', (c) => {
 // Serve with Deno native Web Standards server
 Deno.serve({ port: 8000 }, app.fetch);`,
 
-  lambda: `import { Froot } from 'froot';
-import { handle } from 'froot/adapters/aws-lambda';
+  lambda: `import { Froot } from 'frootjs';
+import { handle } from 'frootjs/adapters/aws-lambda';
 
 const app = new Froot();
 
@@ -97,7 +97,7 @@ const app = new Froot()
 export type AppType = typeof app;
 
 // 2. Frontend / Client: Zero code-gen, instant type safety!
-import { createFrootClient } from 'froot/client';
+import { createFrootClient } from 'frootjs/client';
 import type { AppType } from './server';
 
 const client = createFrootClient<AppType>({ baseUrl: 'http://localhost:3000' });
@@ -136,7 +136,7 @@ pnpm add -D typescript @types/node</code></pre>
         title: '1.3 Your First Application',
         content: `<h1>Lesson 1.3: Your First Application</h1>
 <p>Create a basic HTTP server with static and dynamic routes:</p>
-<pre><code>import { Froot } from 'froot';
+<pre><code>import { Froot } from 'frootjs';
 
 const app = new Froot();
 app.get('/health', (c) => c.json({ status: 'ok' }));
@@ -300,7 +300,8 @@ function setupRuntimeTabs() {
 
 // 4. Copy Install Command
 function copyInstallCmd() {
-  const cmd = 'pnpm add froot';
+  const textEl = document.getElementById('install-cmd-text');
+  const cmd = textEl ? textEl.innerText.trim() : 'npm create frootjs@latest';
   navigator.clipboard.writeText(cmd).then(() => {
     const toast = document.getElementById('copy-toast');
     if (toast) {
