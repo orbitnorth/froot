@@ -9,7 +9,14 @@ import * as path from 'node:path';
 import type { Froot } from '../core/app.js';
 import { renderToHtml } from '../jsx/render.js';
 import { isRawHtml } from '../jsx/escape.js';
-import { isPreactElement, renderPreact } from '../preact/index.js';
+
+function isPreactVNode(val: unknown): boolean {
+  return (
+    val !== null &&
+    typeof val === 'object' &&
+    ('__v' in val || ('type' in val && 'props' in val && 'ref' in val))
+  );
+}
 import type {
   Metadata,
   PageComponent,
@@ -107,7 +114,8 @@ export class AppRouter {
           html = finalTree;
         } else if (isRawHtml(finalTree)) {
           html = finalTree.__html;
-        } else if (isPreactElement(finalTree)) {
+        } else if (isPreactVNode(finalTree)) {
+          const { renderPreact } = await import('../preact/index.js');
           html = renderPreact(finalTree);
         } else {
           html = await renderToHtml(finalTree);

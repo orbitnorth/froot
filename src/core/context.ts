@@ -14,9 +14,29 @@ import type {
   RequestContext,
   RouteParams
 } from '../types/index.js';
+import { createRequire } from 'node:module';
 import { signValue, verifySignedValue } from '../utils/crypto.js';
 import { fastExtractPathname, fastParseQuery } from '../utils/url.js';
-import { renderPreact } from '../preact/index.js';
+
+const require = createRequire(import.meta.url);
+let _renderPreact: ((vnode: any) => string) | null = null;
+function getRenderPreact(): (vnode: any) => string {
+  if (!_renderPreact) {
+    const { renderToString } = require('preact-render-to-string');
+    _renderPreact = (vnode: any): string => {
+      if (vnode === null || vnode === undefined || typeof vnode === 'boolean') return '';
+      if (typeof vnode === 'string' || typeof vnode === 'number') return String(vnode);
+      const html = renderToString(vnode);
+      if (!html.startsWith('<!DOCTYPE html>') && !html.startsWith('<!doctype html>')) {
+        if (html.startsWith('<html') || html.startsWith('<HTML')) {
+          return `<!DOCTYPE html>\n${html}`;
+        }
+      }
+      return html;
+    };
+  }
+  return _renderPreact;
+}
 
 function parseCookies(headerStr: string): Record<string, string> {
   const result: Record<string, string> = {};
@@ -592,7 +612,8 @@ export class FrootContext<
    * Returns a Preact-rendered HTML response.
    */
   public preact(vnode: any, status?: StatusCode, headers?: HeadersInit): Response {
-    const htmlStr = renderPreact(vnode);
+    const render = getRenderPreact();
+    const htmlStr = render(vnode);
     return this.html(htmlStr, status, headers);
   }
 
