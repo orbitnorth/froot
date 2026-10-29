@@ -57,7 +57,7 @@ describe('create-frootjs Templates & Scaffolder', () => {
         pkg.dependencies?.frootjs,
         `Template ${t.id} must declare frootjs as dependency`
       );
-      assert.equal(pkg.dependencies.frootjs, '^1.0.1');
+      assert.equal(pkg.dependencies.frootjs, '^1.0.2');
     }
   });
 
@@ -188,5 +188,229 @@ describe('create-frootjs Templates & Scaffolder', () => {
 
     const indexFile = await fs.stat(path.join(targetDir, 'src/index.ts'));
     assert.ok(indexFile.isFile());
+  });
+
+  it('compiles scaffolded modular template with typescript without errors', async () => {
+    const targetDir = path.join(tempBaseDir, 'test-modular');
+    // Link node_modules from create-frootjs so tsc can resolve @types/node
+    const localNodeModules = path.resolve('node_modules');
+    try {
+      await fs.symlink(localNodeModules, path.join(targetDir, 'node_modules'), 'junction');
+    } catch {
+      // junction may already exist
+    }
+
+    const { exec } = await import('node:child_process');
+    const { promisify } = await import('node:util');
+    const execAsync = promisify(exec);
+
+    // Run tsc --noEmit
+    const tscBin = path.join(localNodeModules, 'typescript/bin/tsc');
+    const { stderr } = await execAsync(`node "${tscBin}" --noEmit`, { cwd: targetDir });
+    assert.equal(stderr, '');
+  });
+
+  it('compiles scaffolded mvc template with typescript without errors', async () => {
+    const targetDir = path.join(tempBaseDir, 'test-mvc');
+    const localNodeModules = path.resolve('node_modules');
+    try {
+      await fs.symlink(localNodeModules, path.join(targetDir, 'node_modules'), 'junction');
+    } catch {
+      // ignore
+    }
+
+    const { exec } = await import('node:child_process');
+    const { promisify } = await import('node:util');
+    const execAsync = promisify(exec);
+
+    const tscBin = path.join(localNodeModules, 'typescript/bin/tsc');
+    const { stderr } = await execAsync(`node "${tscBin}" --noEmit`, { cwd: targetDir });
+    assert.equal(stderr, '');
+  });
+
+  it('scaffolds project with Drizzle ORM add-on', async () => {
+    const targetDir = path.join(tempBaseDir, 'test-drizzle');
+    const template = getTemplate('minimal')!;
+
+    const result = await scaffoldProject({
+      targetDir,
+      projectName: 'test-drizzle',
+      template,
+      pkgManager: 'pnpm',
+      gitInit: false,
+      installDeps: false,
+      database: 'drizzle',
+    });
+
+    assert.ok(result.filesWritten >= 7);
+    const hasConfig = await fs.stat(path.join(targetDir, 'drizzle.config.ts'));
+    assert.ok(hasConfig.isFile());
+    const hasSchema = await fs.stat(path.join(targetDir, 'src/db/schema.ts'));
+    assert.ok(hasSchema.isFile());
+
+    const pkg = JSON.parse(await fs.readFile(path.join(targetDir, 'package.json'), 'utf8'));
+    assert.ok(pkg.dependencies['drizzle-orm']);
+    assert.ok(pkg.dependencies['better-sqlite3']);
+    assert.ok(pkg.scripts['db:push']);
+  });
+
+  it('scaffolds project with Prisma add-on', async () => {
+    const targetDir = path.join(tempBaseDir, 'test-prisma');
+    const template = getTemplate('minimal')!;
+
+    const result = await scaffoldProject({
+      targetDir,
+      projectName: 'test-prisma',
+      template,
+      pkgManager: 'pnpm',
+      gitInit: false,
+      installDeps: false,
+      database: 'prisma',
+    });
+
+    assert.ok(result.filesWritten >= 7);
+    const hasSchema = await fs.stat(path.join(targetDir, 'prisma/schema.prisma'));
+    assert.ok(hasSchema.isFile());
+
+    const pkg = JSON.parse(await fs.readFile(path.join(targetDir, 'package.json'), 'utf8'));
+    assert.ok(pkg.dependencies['@prisma/client']);
+    assert.ok(pkg.devDependencies['prisma']);
+    assert.ok(pkg.scripts['db:push']);
+  });
+
+  it('scaffolds project with Docker add-on', async () => {
+    const targetDir = path.join(tempBaseDir, 'test-docker');
+    const template = getTemplate('minimal')!;
+
+    const result = await scaffoldProject({
+      targetDir,
+      projectName: 'test-docker',
+      template,
+      pkgManager: 'pnpm',
+      gitInit: false,
+      installDeps: false,
+      docker: true,
+    });
+
+    assert.ok(result.filesWritten >= 8);
+    const hasDockerfile = await fs.stat(path.join(targetDir, 'Dockerfile'));
+    assert.ok(hasDockerfile.isFile());
+    const hasCompose = await fs.stat(path.join(targetDir, 'docker-compose.yml'));
+    assert.ok(hasCompose.isFile());
+    const hasDockerignore = await fs.stat(path.join(targetDir, '.dockerignore'));
+    assert.ok(hasDockerignore.isFile());
+
+    const dockerfile = await fs.readFile(path.join(targetDir, 'Dockerfile'), 'utf8');
+    assert.ok(dockerfile.includes('FROM node:22-alpine'));
+    assert.ok(dockerfile.includes('dist/index.js'));
+  });
+
+  it('scaffolds project with Biome linter add-on', async () => {
+    const targetDir = path.join(tempBaseDir, 'test-biome');
+    const template = getTemplate('minimal')!;
+
+    const result = await scaffoldProject({
+      targetDir,
+      projectName: 'test-biome',
+      template,
+      pkgManager: 'pnpm',
+      gitInit: false,
+      installDeps: false,
+      linter: 'biome',
+    });
+
+    assert.ok(result.filesWritten >= 6);
+    const hasBiomeJson = await fs.stat(path.join(targetDir, 'biome.json'));
+    assert.ok(hasBiomeJson.isFile());
+
+    const pkg = JSON.parse(await fs.readFile(path.join(targetDir, 'package.json'), 'utf8'));
+    assert.ok(pkg.devDependencies['@biomejs/biome']);
+    assert.equal(pkg.scripts['lint'], 'biome lint src/');
+    assert.equal(pkg.scripts['format'], 'biome format --write src/');
+    assert.equal(pkg.scripts['check'], 'biome check src/');
+  });
+
+  it('scaffolds project with ESLint + Prettier add-on', async () => {
+    const targetDir = path.join(tempBaseDir, 'test-eslint');
+    const template = getTemplate('minimal')!;
+
+    const result = await scaffoldProject({
+      targetDir,
+      projectName: 'test-eslint',
+      template,
+      pkgManager: 'pnpm',
+      gitInit: false,
+      installDeps: false,
+      linter: 'eslint',
+    });
+
+    assert.ok(result.filesWritten >= 7);
+    const hasEslint = await fs.stat(path.join(targetDir, 'eslint.config.js'));
+    assert.ok(hasEslint.isFile());
+    const hasPrettier = await fs.stat(path.join(targetDir, '.prettierrc'));
+    assert.ok(hasPrettier.isFile());
+
+    const pkg = JSON.parse(await fs.readFile(path.join(targetDir, 'package.json'), 'utf8'));
+    assert.ok(pkg.devDependencies['eslint']);
+    assert.ok(pkg.devDependencies['prettier']);
+    assert.ok(pkg.devDependencies['@eslint/js']);
+    assert.ok(pkg.devDependencies['typescript-eslint']);
+    assert.equal(pkg.scripts['lint'], 'eslint src/');
+    assert.equal(pkg.scripts['format'], 'prettier --write src/');
+  });
+
+  it('scaffolds project with Vitest testing add-on', async () => {
+    const targetDir = path.join(tempBaseDir, 'test-vitest');
+    const template = getTemplate('minimal')!;
+
+    const result = await scaffoldProject({
+      targetDir,
+      projectName: 'test-vitest',
+      template,
+      pkgManager: 'pnpm',
+      gitInit: false,
+      installDeps: false,
+      testing: 'vitest',
+    });
+
+    assert.ok(result.filesWritten >= 7);
+    const hasConfig = await fs.stat(path.join(targetDir, 'vitest.config.ts'));
+    assert.ok(hasConfig.isFile());
+    const hasTestFile = await fs.stat(path.join(targetDir, 'tests/app.test.ts'));
+    assert.ok(hasTestFile.isFile());
+
+    const testContent = await fs.readFile(path.join(targetDir, 'tests/app.test.ts'), 'utf8');
+    assert.ok(testContent.includes("from 'vitest'"));
+    assert.ok(testContent.includes('app.fetch'));
+
+    const pkg = JSON.parse(await fs.readFile(path.join(targetDir, 'package.json'), 'utf8'));
+    assert.ok(pkg.devDependencies['vitest']);
+    assert.equal(pkg.scripts['test'], 'vitest run');
+  });
+
+  it('scaffolds project with Node:test testing add-on', async () => {
+    const targetDir = path.join(tempBaseDir, 'test-nodetest');
+    const template = getTemplate('mvc')!;
+
+    const result = await scaffoldProject({
+      targetDir,
+      projectName: 'test-nodetest',
+      template,
+      pkgManager: 'pnpm',
+      gitInit: false,
+      installDeps: false,
+      testing: 'node',
+    });
+
+    assert.ok(result.filesWritten >= 10);
+    const hasTestFile = await fs.stat(path.join(targetDir, 'tests/app.test.ts'));
+    assert.ok(hasTestFile.isFile());
+
+    const testContent = await fs.readFile(path.join(targetDir, 'tests/app.test.ts'), 'utf8');
+    assert.ok(testContent.includes("from 'node:test'"));
+    assert.ok(testContent.includes('app.fetch'));
+
+    const pkg = JSON.parse(await fs.readFile(path.join(targetDir, 'package.json'), 'utf8'));
+    assert.equal(pkg.scripts['test'], 'node --test tests/*.test.ts');
   });
 });
