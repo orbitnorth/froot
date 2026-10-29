@@ -1,6 +1,6 @@
 {
   "name": "frootjs",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "High-performance, ultra-flexible, TypeScript-native web framework",
   "type": "module",
   "main": "./dist/index.js",
@@ -29,6 +29,10 @@
     "./runtime": {
       "types": "./dist/utils/runtime.d.ts",
       "import": "./dist/utils/runtime.js"
+    },
+    "./app": {
+      "types": "./dist/app-router/index.d.ts",
+      "import": "./dist/app-router/index.js"
     },
     "./jsx": {
       "types": "./dist/jsx/index.d.ts",

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { html, raw, escapeHtml, exportStatic } from '../dist/html/index.js';
+import { html, raw, escapeHtml, exportStatic, renderFile } from '../dist/html/index.js';
 import { Froot } from '../dist/index.js';
 
 describe('🍏 Froot Frontend Capabilities (HTML Tag & SSG)', () => {
@@ -87,5 +87,23 @@ describe('🍏 Froot Frontend Capabilities (HTML Tag & SSG)', () => {
         // ignore
       }
     }
+  });
+
+  it('should render pure .html template files from disk without HTML in .ts code', async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'froot-view-test-'));
+    const tplPath = path.join(tempDir, 'layout.html');
+    await fs.writeFile(tplPath, '<!DOCTYPE html><html><head><title>{{title}}</title></head><body>{{content}}</body></html>', 'utf8');
+
+    const result = await renderFile(tplPath, {
+      title: 'Froot Views',
+      content: 'Pure HTML template without embedded HTML in TS',
+    });
+
+    assert.equal(
+      result,
+      '<!DOCTYPE html><html><head><title>Froot Views</title></head><body>Pure HTML template without embedded HTML in TS</body></html>'
+    );
+
+    await fs.rm(tempDir, { recursive: true, force: true });
   });
 });

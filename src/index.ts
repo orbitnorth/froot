@@ -79,6 +79,17 @@ export {
   type LayoutComponent
 } from './jsx/index.js';
 
+// Next.js-inspired App Router & Nested Layouts
+export {
+  createAppRouter,
+  AppRouter,
+  type Metadata,
+  type PageProps,
+  type LayoutProps,
+  type PageComponent,
+  type PageOptions,
+} from './app-router/index.js';
+
 // Streaming — chunked streams, plain text & Server-Sent Events
 export {
   stream,
