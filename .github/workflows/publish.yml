@@ -47,3 +47,4 @@ jobs:
           pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.tag || 'latest' }} --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+

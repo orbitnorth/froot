@@ -54,6 +54,38 @@
       "types": "./dist/auth/index.d.ts",
       "import": "./dist/auth/index.js"
     },
+    "./jwt": {
+      "types": "./dist/auth/jwt.d.ts",
+      "import": "./dist/auth/jwt.js"
+    },
+    "./basic-auth": {
+      "types": "./dist/auth/basic.d.ts",
+      "import": "./dist/auth/basic.js"
+    },
+    "./html": {
+      "types": "./dist/html/index.d.ts",
+      "import": "./dist/html/index.js"
+    },
+    "./cors": {
+      "types": "./dist/middleware/cors.d.ts",
+      "import": "./dist/middleware/cors.js"
+    },
+    "./logger": {
+      "types": "./dist/middleware/logger.d.ts",
+      "import": "./dist/middleware/logger.js"
+    },
+    "./timing": {
+      "types": "./dist/middleware/timing.d.ts",
+      "import": "./dist/middleware/timing.js"
+    },
+    "./security": {
+      "types": "./dist/middleware/security.d.ts",
+      "import": "./dist/middleware/security.js"
+    },
+    "./bearer-auth": {
+      "types": "./dist/middleware/bearer-auth.d.ts",
+      "import": "./dist/middleware/bearer-auth.js"
+    },
     "./openapi": {
       "types": "./dist/openapi/index.d.ts",
       "import": "./dist/openapi/index.js"
