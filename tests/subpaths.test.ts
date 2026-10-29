@@ -57,3 +57,4 @@ describe('Froot Subpath Export Parity (Hono-style)', () => {
     assert.equal(typeof buildOpenAPISpec, 'function');
   });
 });
+
