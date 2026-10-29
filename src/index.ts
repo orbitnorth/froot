@@ -90,6 +90,17 @@ export {
   type PageOptions,
 } from './app-router/index.js';
 
+// HTML & Markdown View Engine
+export {
+  renderFile,
+  clearTemplateCache,
+  renderMarkdown,
+  renderMarkdownFile,
+  parseFrontmatter,
+  type ViewOptions,
+  type ParsedMarkdown,
+} from './html/index.js';
+
 // Streaming — chunked streams, plain text & Server-Sent Events
 export {
   stream,
