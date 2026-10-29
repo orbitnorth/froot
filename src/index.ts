@@ -101,13 +101,6 @@ export {
   type ParsedMarkdown,
 } from './html/index.js';
 
-// Native Preact SSR Integration
-export {
-  renderPreact,
-  isPreactElement,
-  preactRenderer,
-} from './preact/index.js';
-
 // Streaming — chunked streams, plain text & Server-Sent Events
 export {
   stream,

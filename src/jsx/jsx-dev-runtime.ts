@@ -3,5 +3,5 @@
  */
 
 export { jsxDEV, Fragment } from './vnode.js';
-export type { JSXNode, Child, FC, PropsWithChildren } from './types.js';
+export type { JSXNode, Child, FC, PropsWithChildren, JSX } from './types.js';
 

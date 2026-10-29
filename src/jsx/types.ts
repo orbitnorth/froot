@@ -36,6 +36,7 @@ export interface RawHtml {
 export declare const Fragment: (props: PropsWithChildren) => JSXNode;
 
 export interface StandardHtmlAttributes {
+  children?: Child | undefined;
   id?: string | undefined;
   class?: string | undefined;
   className?: string | undefined;
@@ -45,10 +46,12 @@ export interface StandardHtmlAttributes {
   dir?: string | undefined;
   hidden?: boolean | undefined;
   tabindex?: number | string | undefined;
+  tabIndex?: number | string | undefined;
   role?: string | undefined;
   dangerouslySetInnerHTML?: { __html: string } | undefined;
   [key: `data-${string}`]: any;
   [key: `aria-${string}`]: any;
+  [key: string]: any;
 }
 
 export interface AnchorHtmlAttributes extends StandardHtmlAttributes {
@@ -108,7 +111,9 @@ export interface MetaHtmlAttributes extends StandardHtmlAttributes {
   name?: string | undefined;
   content?: string | undefined;
   charset?: string | undefined;
+  charSet?: string | undefined;
   'http-equiv'?: string | undefined;
+  httpEquiv?: string | undefined;
 }
 
 export interface ScriptHtmlAttributes extends StandardHtmlAttributes {
@@ -118,11 +123,77 @@ export interface ScriptHtmlAttributes extends StandardHtmlAttributes {
   defer?: boolean | undefined;
 }
 
+export namespace JSX {
+  export type Element = any;
+  export type ElementType = any;
+  export interface ElementChildrenAttribute {
+    children: any;
+  }
+  export interface IntrinsicElements {
+    // Structure
+    html: StandardHtmlAttributes;
+    head: StandardHtmlAttributes;
+    body: StandardHtmlAttributes;
+    title: StandardHtmlAttributes;
+    meta: MetaHtmlAttributes;
+    link: LinkHtmlAttributes;
+    script: ScriptHtmlAttributes;
+    style: StandardHtmlAttributes;
+
+    // Layout & Text
+    div: StandardHtmlAttributes;
+    span: StandardHtmlAttributes;
+    p: StandardHtmlAttributes;
+    h1: StandardHtmlAttributes;
+    h2: StandardHtmlAttributes;
+    h3: StandardHtmlAttributes;
+    h4: StandardHtmlAttributes;
+    h5: StandardHtmlAttributes;
+    h6: StandardHtmlAttributes;
+    main: StandardHtmlAttributes;
+    header: StandardHtmlAttributes;
+    footer: StandardHtmlAttributes;
+    nav: StandardHtmlAttributes;
+    section: StandardHtmlAttributes;
+    article: StandardHtmlAttributes;
+    aside: StandardHtmlAttributes;
+
+    // Inline & Media
+    a: AnchorHtmlAttributes;
+    button: ButtonHtmlAttributes;
+    input: InputHtmlAttributes;
+    textarea: StandardHtmlAttributes & { name?: string; rows?: number; cols?: number; disabled?: boolean; required?: boolean };
+    select: StandardHtmlAttributes & { name?: string; disabled?: boolean; required?: boolean; multiple?: boolean };
+    option: StandardHtmlAttributes & { value?: string | number; selected?: boolean; disabled?: boolean };
+    label: StandardHtmlAttributes & { for?: string; htmlFor?: string };
+    form: FormHtmlAttributes;
+    img: ImgHtmlAttributes;
+    ul: StandardHtmlAttributes;
+    ol: StandardHtmlAttributes;
+    li: StandardHtmlAttributes;
+    table: StandardHtmlAttributes;
+    thead: StandardHtmlAttributes;
+    tbody: StandardHtmlAttributes;
+    tr: StandardHtmlAttributes;
+    th: StandardHtmlAttributes;
+    td: StandardHtmlAttributes;
+    pre: StandardHtmlAttributes;
+    code: StandardHtmlAttributes;
+    blockquote: StandardHtmlAttributes;
+    hr: StandardHtmlAttributes;
+    br: StandardHtmlAttributes;
+
+    // Generic fallback
+    [elemName: string]: StandardHtmlAttributes & Record<string, any>;
+  }
+}
+
 declare global {
   namespace JSX {
-    type Element = JSXNode;
+    type Element = any;
+    type ElementType = any;
     interface ElementChildrenAttribute {
-      children: Record<string, unknown>;
+      children: any;
     }
     interface IntrinsicElements {
       // Structure

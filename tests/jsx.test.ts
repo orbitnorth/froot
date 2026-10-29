@@ -174,4 +174,21 @@ describe('🍏 Froot JSX Engine (Unit & SSR Tests)', () => {
       '<!DOCTYPE html><html lang="en"><body class="shell"><p>About Froot Framework</p></body></html>'
     );
   });
+
+  it('should export React 17+ jsx-runtime and jsx-dev-runtime from subpaths', async () => {
+    // @ts-ignore
+    const runtime = await import('frootjs/jsx-runtime');
+    assert.strictEqual(typeof runtime.jsx, 'function');
+    assert.strictEqual(typeof runtime.jsxs, 'function');
+    assert.strictEqual(typeof runtime.Fragment, 'function');
+
+    // @ts-ignore
+    const devRuntime = await import('frootjs/jsx-dev-runtime');
+    assert.strictEqual(typeof devRuntime.jsxDEV, 'function');
+    assert.strictEqual(typeof devRuntime.Fragment, 'function');
+
+    const vnode = runtime.jsx('h2', { children: 'Runtime Header' });
+    const html = await renderToString(vnode);
+    assert.strictEqual(html, '<h2>Runtime Header</h2>');
+  });
 });

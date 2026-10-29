@@ -5,7 +5,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { h } from 'preact';
-import { Froot, createAppRouter, renderPreact, isPreactElement } from '../dist/index.js';
+import { Froot, createAppRouter } from '../dist/index.js';
+import { renderPreact, isPreactElement } from '../dist/preact/index.js';
 
 describe('⚛️ Froot Native Preact SSR Integration', () => {
   it('should detect valid Preact VNode elements with isPreactElement', () => {
