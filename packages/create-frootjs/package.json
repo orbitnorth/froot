@@ -1,11 +1,11 @@
 {
   "name": "create-frootjs",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Interactive CLI generator for scaffolding high-performance Froot applications",
   "type": "module",
   "bin": {
-    "create-frootjs": "./dist/index.js",
-    "create-froot": "./dist/index.js"
+    "create-frootjs": "dist/index.js",
+    "create-froot": "dist/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
