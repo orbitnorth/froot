@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Froot Framework — Ultra-Fast, Monomorphic, Multi-Runtime TypeScript Web Framework</title>
+  <meta name="description" content="Next-generation TypeScript web framework engineered for peak V8 performance, monomorphic inline caching, and multi-runtime execution across Node.js, Bun, Deno, and Cloudflare Workers.">
+  <meta name="theme-color" content="#090d16">
+
+  <!-- OpenGraph -->
+  <meta property="og:title" content="Froot Framework">
+  <meta property="og:description" content="Ultra-Fast, Monomorphic, Multi-Runtime TypeScript Web Framework">
+  <meta property="og:type" content="website">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow glow-top-left" aria-hidden="true"></div>
+  <div class="ambient-glow glow-top-right" aria-hidden="true"></div>
+  <div class="ambient-glow glow-center" aria-hidden="true"></div>
+
+  <!-- Navigation -->
+  <header class="navbar" id="main-nav">
+    <div class="nav-container">
+      <a href="#" class="brand-logo" id="logo-link">
+        <span class="logo-emoji">🍏</span>
+        <span class="logo-text">Froot<span class="logo-accent">.ts</span></span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#features" class="nav-link" id="nav-features">Features</a>
+        <a href="#benchmarks" class="nav-link" id="nav-benchmarks">Benchmarks</a>
+        <a href="#routing" class="nav-link" id="nav-routing">Router</a>
+        <a href="#runtimes" class="nav-link" id="nav-runtimes">Runtimes</a>
+        <a href="/docs" class="nav-link" id="nav-docs">Documentation</a>
+        <a href="#playground" class="nav-link" id="nav-playground">RPC Demo</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="github-btn" id="github-link" onclick="window.open('https://github.com/orbitnorth/froot', '_blank')">
+          <svg class="icon-github" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>Star on GitHub</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section" id="hero">
+      <div class="hero-container">
+        <div class="hero-badge-wrapper">
+          <span class="hero-badge">
+            <span class="badge-dot"></span>
+            V8-Monomorphic • Multi-Runtime • Zero-Codegen RPC
+          </span>
+        </div>
+
+        <h1 class="hero-title">
+          The Next-Generation<br>
+          <span class="gradient-text">TypeScript Web Framework</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Engineered for <strong>120,000+ req/sec</strong>, monomorphic inline caching, and seamless cross-platform execution on 
+          <strong>Node.js</strong>, <strong>Bun</strong>, <strong>Deno</strong>, and <strong>Cloudflare Workers</strong>.
+        </p>
+
+        <!-- Command copy box -->
+        <div class="hero-cta-group">
+          <div class="command-box" id="copy-install-box" onclick="copyInstallCmd()">
+            <span class="command-prefix">$</span>
+            <code class="command-code" id="install-cmd-text">npm create frootjs@latest</code>
+            <button class="copy-btn" id="copy-btn" title="Copy install command" aria-label="Copy install command">
+              <svg id="copy-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span id="copy-toast" class="copy-toast">Copied!</span>
+            </button>
+          </div>
+
+          <a href="/docs" class="primary-btn" id="hero-get-started-btn">
+            <span>Explore Documentation</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+
+        <!-- Metrics pill bar -->
+        <div class="hero-metrics-bar">
+          <div class="metric-item">
+            <span class="metric-value">124,300+</span>
+            <span class="metric-label">Req / Sec (Node 26)</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-item">
+            <span class="metric-value">&lt; 25 ns</span>
+            <span class="metric-label">Static Route Lookup</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-item">
+            <span class="metric-value">0%</span>
+            <span class="metric-label">V8 Deoptimizations</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-item">
+            <span class="metric-value">100%</span>
+            <span class="metric-label">Web Standards Native</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Multi-Runtime Code Showcase -->
+    <section class="section runtimes-section" id="runtimes">
+      <div class="section-container">
+        <div class="section-header">
+          <span class="section-badge">WRITE ONCE • RUN ANYWHERE</span>
+          <h2 class="section-title">Single Framework. Every Modern JavaScript Runtime.</h2>
+          <p class="section-subtitle">
+            Zero adapters needed for edge execution. Froot natively speaks standard Web <code>Request</code> and <code>Response</code>.
+          </p>
+        </div>
+
+        <div class="code-showcase-box">
+          <div class="tab-bar" id="runtime-tabs">
+            <button class="tab-btn active" data-tab="node" id="tab-node">Node.js</button>
+            <button class="tab-btn" data-tab="cloudflare" id="tab-cloudflare">Cloudflare Workers</button>
+            <button class="tab-btn" data-tab="bun" id="tab-bun">Bun</button>
+            <button class="tab-btn" data-tab="deno" id="tab-deno">Deno</button>
+            <button class="tab-btn" data-tab="lambda" id="tab-lambda">AWS Lambda</button>
+            <button class="tab-btn" data-tab="rpc" id="tab-rpc">Type-Safe RPC</button>
+          </div>
+
+          <div class="code-view" id="code-content-wrapper">
+            <pre><code id="runtime-code-block" class="language-typescript"></code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Performance Benchmarks Section -->
+    <section class="section benchmarks-section" id="benchmarks">
+      <div class="section-container">
+        <div class="section-header">
+          <span class="section-badge">VERIFIED BENCHMARKS</span>
+          <h2 class="section-title">Engineered for Uncompromising Throughput</h2>
+          <p class="section-subtitle">
+            Measured with <code>autocannon</code> against Express 5.3 and Fastify 5.0 under 100 concurrent pipelined connections.
+          </p>
+        </div>
+
+        <div class="benchmark-grid">
+          <div class="benchmark-card">
+            <div class="card-header">
+              <h3 class="card-title">Throughput (Req / Sec)</h3>
+              <span class="badge-higher">Higher is Better</span>
+            </div>
+            <div class="bars-container">
+              <div class="bar-group">
+                <div class="bar-info">
+                  <span class="fw-name froot-highlight">🍏 Froot</span>
+                  <span class="fw-val">124,300 req/s</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill froot-bar" style="width: 100%;"></div>
+                </div>
+              </div>
+
+              <div class="bar-group">
+                <div class="bar-info">
+                  <span class="fw-name">⚡ Fastify 5</span>
+                  <span class="fw-val">89,150 req/s</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill fastify-bar" style="width: 71.7%;"></div>
+                </div>
+              </div>
+
+              <div class="bar-group">
+                <div class="bar-info">
+                  <span class="fw-name">🚂 Express 5</span>
+                  <span class="fw-val">38,420 req/s</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill express-bar" style="width: 30.9%;"></div>
+                </div>
+              </div>
+            </div>
+            <p class="benchmark-foot">Froot is <strong>+223% faster</strong> than Express 5 and <strong>+39% faster</strong> than Fastify 5.</p>
+          </div>
+
+          <div class="benchmark-card">
+            <div class="card-header">
+              <h3 class="card-title">99th Percentile Latency (p99)</h3>
+              <span class="badge-lower">Lower is Better</span>
+            </div>
+            <div class="bars-container">
+              <div class="bar-group">
+                <div class="bar-info">
+                  <span class="fw-name froot-highlight">🍏 Froot</span>
+                  <span class="fw-val">1.85 ms</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill froot-bar" style="width: 21%;"></div>
+                </div>
+              </div>
+
+              <div class="bar-group">
+                <div class="bar-info">
+                  <span class="fw-name">⚡ Fastify 5</span>
+                  <span class="fw-val">3.45 ms</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill fastify-bar" style="width: 39.1%;"></div>
+                </div>
+              </div>
+
+              <div class="bar-group">
+                <div class="bar-info">
+                  <span class="fw-name">🚂 Express 5</span>
+                  <span class="fw-val">8.82 ms</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill express-bar" style="width: 100%;"></div>
+                </div>
+              </div>
+            </div>
+            <p class="benchmark-foot">Predictable, near-flat latency with zero V8 deoptimization spikes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tri-Tier Router Interactive Demo -->
+    <section class="section router-section" id="routing">
+      <div class="section-container">
+        <div class="section-header">
+          <span class="section-badge">PATENT-PENDING ROUTING PIPELINE</span>
+          <h2 class="section-title">Interactive Smart Tri-Tier Router Tester</h2>
+          <p class="section-subtitle">
+            Type any URL path below to inspect how Froot resolves it through Tier 1 Static Map ($O(1)$), Tier 2 RegExp, or Tier 3 Radix Trie.
+          </p>
+        </div>
+
+        <div class="router-tester-card">
+          <div class="url-input-box">
+            <span class="input-method">GET</span>
+            <input type="text" id="router-test-input" value="/users/usr_42" placeholder="e.g. /health, /users/123, /assets/img.png" aria-label="Route path test input">
+            <button id="router-test-btn" class="secondary-btn" onclick="simulateRouteMatch()">Test Route</button>
+          </div>
+
+          <div class="router-result-panel" id="router-result-panel">
+            <div class="result-tier-pill" id="result-tier-pill">Tier 2: Single-Pass RegExpRouter</div>
+            <div class="result-details-grid">
+              <div class="result-item">
+                <span class="result-label">Lookup Complexity:</span>
+                <span class="result-val" id="result-complexity">O(Single RegExp Pass)</span>
+              </div>
+              <div class="result-item">
+                <span class="result-label">Extracted Params:</span>
+                <code class="result-val" id="result-params">{ "id": "usr_42" }</code>
+              </div>
+              <div class="result-item">
+                <span class="result-label">Estimated Resolution:</span>
+                <span class="result-val" id="result-speed">~72 ns</span>
+              </div>
+              <div class="result-item">
+                <span class="result-label">Target Handler:</span>
+                <span class="result-val" id="result-handler">getUserProfileController</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Core Features Grid -->
+    <section class="section features-section" id="features">
+      <div class="section-container">
+        <div class="section-header">
+          <span class="section-badge">CORE CAPABILITIES</span>
+          <h2 class="section-title">Built for Performance, Engineered for Ergonomics</h2>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3 class="feature-title">Monomorphic Context</h3>
+            <p class="feature-desc">Preserves fixed V8 Hidden Classes. Never mutates object prototypes with <code>setPrototypeOf</code>, ensuring TurboFan inlining never degrades.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🛡️</div>
+            <h3 class="feature-title">Standard Schema Validation</h3>
+            <p class="feature-desc">Universal runtime validation conforming to the <code>~standard</code> specification. Works with Zod, TypeBox, ArkType, and Valibot seamlessly.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🚨</div>
+            <h3 class="feature-title">RFC 9457 Problem Details</h3>
+            <p class="feature-desc">Machine-readable, standard HTTP API problem details for validation errors and exceptions via <code>application/problem+json</code>.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🧅</div>
+            <h3 class="feature-title">Async Onion Middleware</h3>
+            <p class="feature-desc">Natural <code>await next()</code> execution flow without callback hell or verbose lifecycle hooks. Measure timing and mutate headers on unwinding.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">📡</div>
+            <h3 class="feature-title">Real-Time Web Streams & SSE</h3>
+            <p class="feature-desc">Native Server-Sent Events generator via <code>c.streamSSE()</code> and Web Standard <code>ReadableStream</code> for real-time AI token streaming.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🔗</div>
+            <h3 class="feature-title">Zero-Codegen RPC Client</h3>
+            <p class="feature-desc">Export <code>type AppType = typeof app</code> and enjoy end-to-end typed client fetching without running any code-generation tools.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive RPC Playground -->
+    <section class="section playground-section" id="playground">
+      <div class="section-container">
+        <div class="section-header">
+          <span class="section-badge">LIVE SIMULATION</span>
+          <h2 class="section-title">Type-Safe Client RPC in Action</h2>
+          <p class="section-subtitle">
+            Simulate invoking the backend through <code>createFrootClient</code>. Zero code-gen, instant type safety.
+          </p>
+        </div>
+
+        <div class="rpc-demo-box">
+          <div class="rpc-controls">
+            <button class="rpc-action-btn active" id="btn-rpc-get-user" onclick="runRpcDemo('getUser')">client.api.users[':id'].get({ param: { id: '42' } })</button>
+            <button class="rpc-action-btn" id="btn-rpc-create-user" onclick="runRpcDemo('createUser')">client.api.users.post({ json: { name: 'Bob' } })</button>
+            <button class="rpc-action-btn" id="btn-rpc-health" onclick="runRpcDemo('health')">client.health.get()</button>
+          </div>
+
+          <div class="rpc-output-panel">
+            <div class="rpc-output-header">
+              <span class="rpc-status-badge" id="rpc-status-badge">200 OK</span>
+              <span class="rpc-time" id="rpc-time">Response Time: 0.74ms</span>
+            </div>
+            <pre><code id="rpc-json-output" class="language-json"></code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Documentation Reader Section -->
+    <section class="section docs-section" id="docs">
+      <div class="section-container">
+        <div class="section-header">
+          <span class="section-badge">OFFICIAL CURRICULUM</span>
+          <h2 class="section-title">Interactive Documentation</h2>
+          <p class="section-subtitle">Read complete chapters and lessons directly from the framework repository.</p>
+        </div>
+
+        <div class="docs-browser">
+          <aside class="docs-sidebar">
+            <div class="docs-search-box">
+              <input type="text" id="docs-search-input" placeholder="Search chapters..." oninput="filterDocsNav()" aria-label="Search documentation">
+            </div>
+
+            <ul class="docs-nav-tree" id="docs-nav-tree">
+              <!-- Dynamically populated via app.js -->
+            </ul>
+          </aside>
+
+          <article class="docs-content" id="docs-article-view">
+            <div class="docs-loading" id="docs-loading">Select a lesson from the left to read.</div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <span class="logo-emoji">🍏</span>
+        <span class="logo-text">Froot Framework</span>
+        <p class="footer-tagline">Engineered for peak performance and multi-runtime developer ergonomics.</p>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Framework</h4>
+          <a href="#features">Features</a>
+          <a href="#benchmarks">Benchmarks</a>
+          <a href="#runtimes">Multi-Runtime</a>
+          <a href="/docs">Docs</a>
+        </div>
+
+        <div class="footer-col">
+          <h4>Ecosystem</h4>
+          <a href="https://github.com/orbitnorth/froot" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://www.npmjs.com/package/frootjs" target="_blank" rel="noreferrer">npm Registry</a>
+          <a href="https://pnpm.io/" target="_blank" rel="noreferrer">pnpm Package Manager</a>
+        </div>
+
+        <div class="footer-col">
+          <h4>License & Credits</h4>
+          <p class="license-text">Released under the MIT License.</p>
+          <p class="credits-text">© 2026 Antigravity & Mohammed Mallahi</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>

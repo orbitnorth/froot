@@ -4,13 +4,11 @@
 
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Froot } from '../dist/index.js';
+import { app } from './src/app.ts';
 import { serveStatic, timing, security } from '../dist/middleware/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const app = new Froot();
 
 // Middleware batteries
 app.use('*', timing());
@@ -21,15 +19,14 @@ app.get('/api/status', (c) => {
   return c.json({
     status: 'online',
     framework: 'Froot',
-    version: '1.0.0',
-    uptimeSec: process.uptime()
+    version: '1.0.4',
+    uptimeSec: process.uptime(),
   });
 });
 
 // Static website asset delivery
 app.use('/*', serveStatic({
   root: __dirname,
-  index: 'index.html',
   cacheControl: 'public, max-age=3600',
 }));
 

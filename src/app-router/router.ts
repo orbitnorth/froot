@@ -8,6 +8,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import type { Froot } from '../core/app.js';
 import { renderToHtml } from '../jsx/render.js';
+import { isRawHtml } from '../jsx/escape.js';
 import type {
   Metadata,
   PageComponent,
@@ -100,7 +101,14 @@ export class AppRouter {
         }
 
         // 5. Render to HTML
-        const html = await renderToHtml(finalTree);
+        let html: string;
+        if (typeof finalTree === 'string') {
+          html = finalTree;
+        } else if (isRawHtml(finalTree)) {
+          html = finalTree.__html;
+        } else {
+          html = await renderToHtml(finalTree);
+        }
         return c.html(html);
       });
     };
