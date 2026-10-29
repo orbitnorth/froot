@@ -19,6 +19,9 @@ import { serve, type NodeServerOptions } from './node-adapter.js';
 import { serveFast, type FastServerOptions } from './fast-server.js';
 import { startCluster, type ClusterOptions, type ClusterController } from './cluster.js';
 import { compileSerializer, type JSONSchema } from '../schema/serializer.js';
+import type { RouteDocOptions, RouteDocEntry } from '../openapi/types.js';
+import { buildOpenAPISpec, type OpenAPIBuilderOptions } from '../openapi/builder.js';
+import { scalarUIPage, swaggerUIPage } from '../openapi/scalar-ui.js';
 
 export interface RouteSchemaOptions {
   response?: JSONSchema | undefined;
@@ -27,6 +30,9 @@ export interface RouteSchemaOptions {
 export interface RouteOptions {
   schema?: RouteSchemaOptions | undefined;
 }
+
+/** Re-export so consumers can type-hint route options directly. */
+export type { RouteDocOptions };
 
 type AnyHandler = (
   c: Context<string, Env>
@@ -38,6 +44,8 @@ type RouteRegistration = {
   handler: AnyHandler;
   middleware: MiddlewareHandler[];
   serializer?: ((data: any) => string) | undefined;
+  /** OpenAPI doc options attached to this route (if any). */
+  docOptions?: RouteDocOptions | undefined;
 };
 
 function matchesPrefix(pathname: string, prefix?: string): boolean {
@@ -147,51 +155,43 @@ export class Froot<TEnv extends Env = BlankEnv> {
   public on<P extends string>(
     method: HTTPMethod,
     path: P,
-    handler: Handler<P, TEnv>
-  ): this;
-  public on<P extends string>(
-    method: HTTPMethod,
-    path: P,
-    options: RouteOptions,
-    handler: Handler<P, TEnv>
-  ): this;
-  public on<P extends string>(
-    method: HTTPMethod,
-    path: P,
-    options: RouteOptions,
-    ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]
-  ): this;
-  public on<P extends string>(
-    method: HTTPMethod,
-    path: P,
-    ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]
-  ): this;
-  public on<P extends string>(
-    method: HTTPMethod,
-    path: P,
-    ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]
+    ...args: (RouteOptions | RouteDocOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]
   ): this {
     let serializer: ((data: any) => string) | undefined = undefined;
+    let docOptions: RouteDocOptions | undefined = undefined;
     let handlers = args;
 
     if (
       handlers.length > 1 &&
       typeof handlers[0] === 'object' &&
-      handlers[0] !== null &&
-      'schema' in (handlers[0] as Record<string, unknown>)
+      handlers[0] !== null
     ) {
-      const opts = handlers[0] as RouteOptions;
-      if (opts.schema?.response) {
-        serializer = compileSerializer(opts.schema.response);
+      const first = handlers[0] as Record<string, unknown>;
+      // Detect legacy RouteOptions (has 'schema' key)
+      if ('schema' in first) {
+        const opts = handlers[0] as RouteOptions;
+        if (opts.schema?.response) {
+          serializer = compileSerializer(opts.schema.response);
+        }
+        handlers = handlers.slice(1);
       }
-      handlers = handlers.slice(1);
+      // Detect new RouteDocOptions (has any of the OpenAPI-specific keys)
+      else if (
+        'summary' in first || 'tags' in first || 'body' in first ||
+        'response' in first || 'params' in first || 'query' in first ||
+        'operationId' in first || 'hidden' in first || 'security' in first ||
+        'produces' in first || 'errors' in first || 'description' in first
+      ) {
+        docOptions = handlers[0] as RouteDocOptions;
+        handlers = handlers.slice(1);
+      }
     }
 
     const handler = handlers[handlers.length - 1] as Handler<P, TEnv>;
     const middleware = handlers.slice(0, -1) as MiddlewareHandler[];
 
     const anyHandler = handler as unknown as AnyHandler;
-    this.registeredRoutes.push({ method, path, handler: anyHandler, middleware, serializer });
+    this.registeredRoutes.push({ method, path, handler: anyHandler, middleware, serializer, docOptions });
     this.router.add(method, path, anyHandler, middleware, serializer);
     this.runnerCache.clear();
     return this;
@@ -200,37 +200,47 @@ export class Froot<TEnv extends Env = BlankEnv> {
   public get<P extends string>(path: P, handler: Handler<P, TEnv>): this;
   public get<P extends string>(path: P, options: RouteOptions, handler: Handler<P, TEnv>): this;
   public get<P extends string>(path: P, options: RouteOptions, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
+  public get<P extends string>(path: P, options: RouteDocOptions, handler: Handler<P, TEnv>): this;
+  public get<P extends string>(path: P, options: RouteDocOptions, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
   public get<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
-  public get<P extends string>(path: P, ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+  public get<P extends string>(path: P, ...args: (RouteOptions | RouteDocOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
     return this.on('GET', path, ...(args as [Handler<P, TEnv>]));
   }
 
   public post<P extends string>(path: P, handler: Handler<P, TEnv>): this;
   public post<P extends string>(path: P, options: RouteOptions, handler: Handler<P, TEnv>): this;
   public post<P extends string>(path: P, options: RouteOptions, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
+  public post<P extends string>(path: P, options: RouteDocOptions, handler: Handler<P, TEnv>): this;
+  public post<P extends string>(path: P, options: RouteDocOptions, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
   public post<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
-  public post<P extends string>(path: P, ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+  public post<P extends string>(path: P, ...args: (RouteOptions | RouteDocOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
     return this.on('POST', path, ...(args as [Handler<P, TEnv>]));
   }
 
   public put<P extends string>(path: P, handler: Handler<P, TEnv>): this;
   public put<P extends string>(path: P, options: RouteOptions, handler: Handler<P, TEnv>): this;
+  public put<P extends string>(path: P, options: RouteDocOptions, handler: Handler<P, TEnv>): this;
+  public put<P extends string>(path: P, options: RouteDocOptions, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
   public put<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
-  public put<P extends string>(path: P, ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+  public put<P extends string>(path: P, ...args: (RouteOptions | RouteDocOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
     return this.on('PUT', path, ...(args as [Handler<P, TEnv>]));
   }
 
   public delete<P extends string>(path: P, handler: Handler<P, TEnv>): this;
   public delete<P extends string>(path: P, options: RouteOptions, handler: Handler<P, TEnv>): this;
+  public delete<P extends string>(path: P, options: RouteDocOptions, handler: Handler<P, TEnv>): this;
+  public delete<P extends string>(path: P, options: RouteDocOptions, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
   public delete<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
-  public delete<P extends string>(path: P, ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+  public delete<P extends string>(path: P, ...args: (RouteOptions | RouteDocOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
     return this.on('DELETE', path, ...(args as [Handler<P, TEnv>]));
   }
 
   public patch<P extends string>(path: P, handler: Handler<P, TEnv>): this;
   public patch<P extends string>(path: P, options: RouteOptions, handler: Handler<P, TEnv>): this;
+  public patch<P extends string>(path: P, options: RouteDocOptions, handler: Handler<P, TEnv>): this;
+  public patch<P extends string>(path: P, options: RouteDocOptions, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
   public patch<P extends string>(path: P, ...handlers: [...MiddlewareHandler<P, TEnv>[], Handler<P, TEnv>]): this;
-  public patch<P extends string>(path: P, ...args: (RouteOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+  public patch<P extends string>(path: P, ...args: (RouteOptions | RouteDocOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
     return this.on('PATCH', path, ...(args as [Handler<P, TEnv>]));
   }
 
@@ -247,7 +257,8 @@ export class Froot<TEnv extends Env = BlankEnv> {
         method: route.method,
         path: fullPath,
         handler: route.handler,
-        middleware: route.middleware
+        middleware: route.middleware,
+        docOptions: route.docOptions,
       });
       this.router.add(route.method, fullPath, route.handler, route.middleware);
     }
@@ -276,6 +287,89 @@ export class Froot<TEnv extends Env = BlankEnv> {
    */
   public onNotFound(handler: (c: Context<string, TEnv>) => Response | Promise<Response>): this {
     return this.notFound(handler);
+  }
+
+  /**
+   * Auto-generate and mount OpenAPI 3.1 documentation.
+   *
+   * Mounts two routes automatically:
+   * - `GET /openapi.json` — machine-readable OpenAPI 3.1 spec
+   * - `GET /docs`         — Scalar API reference UI
+   *
+   * Call this **after** all routes are registered.
+   *
+   * @example
+   * ```ts
+   * app.openapi({ title: 'My API', version: '1.0.0' });
+   * ```
+   */
+  public openapi(options: OpenAPIBuilderOptions & {
+    /** Path to serve the JSON spec. Default `'/openapi.json'`. */
+    specPath?: string;
+    /** Path to serve the Scalar docs UI. Default `'/docs'`. Set to `false` to disable. */
+    docsPath?: string | false;
+    /** Path to serve Swagger UI. Default disabled. */
+    swaggerPath?: string | false;
+  } = {}): this {
+    const {
+      specPath   = '/openapi.json',
+      docsPath   = '/docs',
+      swaggerPath = false,
+      ...builderOptions
+    } = options;
+
+    // Build the spec lazily (once) on first request so all routes are registered.
+    let cachedSpec: string | null = null;
+
+    const getSpec = (): string => {
+      if (cachedSpec) return cachedSpec;
+      // Collect route entries that have docOptions
+      const entries: RouteDocEntry[] = this.registeredRoutes
+        .filter((r) => r.docOptions !== undefined)
+        .map((r) => ({
+          method: r.method,
+          path: r.path,
+          ...(r.docOptions as RouteDocOptions),
+        }));
+      cachedSpec = JSON.stringify(buildOpenAPISpec(entries, builderOptions), null, 2);
+      return cachedSpec;
+    };
+
+    // Bust cache when new routes are added after openapi() is called
+    const origRunnerCacheClear = this.runnerCache.clear.bind(this.runnerCache);
+    this.runnerCache.clear = () => {
+      cachedSpec = null;
+      origRunnerCacheClear();
+    };
+
+    // Mount spec endpoint
+    this.get(specPath as any, () => {
+      const spec = getSpec();
+      return new Response(spec, {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-cache',
+        },
+      });
+    });
+
+    // Mount Scalar docs UI
+    if (docsPath) {
+      this.get(docsPath as any, () => {
+        const html = scalarUIPage({ specUrl: specPath });
+        return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+      });
+    }
+
+    // Optional: mount Swagger UI
+    if (swaggerPath) {
+      this.get(swaggerPath as any, () => {
+        const html = swaggerUIPage({ specUrl: specPath });
+        return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+      });
+    }
+
+    return this;
   }
 
   /**

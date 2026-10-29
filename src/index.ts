@@ -129,6 +129,22 @@ export {
   type BasicAuthOptions,
 } from './auth/index.js';
 
+// OpenAPI 3.1 & Schema Ecosystem
+export {
+  buildOpenAPISpec,
+  anySchemaToJsonSchema,
+  scalarUIPage,
+  swaggerUIPage,
+  type RouteDocOptions,
+  type RouteDocEntry,
+  type AnySchema,
+  type StandardSchemaV1,
+  type SecurityRequirement,
+  type OpenAPIBuilderOptions,
+  type ScalarUIOptions,
+  type JsonSchema,
+} from './openapi/index.js';
+
 // Type definitions
 export type * from './types/index.js';
 export type * from './types/http.js';
