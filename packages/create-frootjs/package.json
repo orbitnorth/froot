@@ -23,8 +23,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/orbitnorth/froot.git",
-    "directory": "packages/create-frootjs"
+    "url": "git+https://github.com/orbitnorth/create-frootjs.git"
+  },
+  "homepage": "https://github.com/orbitnorth/create-frootjs#readme",
+  "bugs": {
+    "url": "https://github.com/orbitnorth/create-frootjs/issues"
   },
   "keywords": [
     "froot",
