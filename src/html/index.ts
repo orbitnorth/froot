@@ -1,13 +1,14 @@
 /**
  * @module html
- * HTML response and escaping utilities for Froot.
+ * HTML template literal, escaping utilities, and SSG engine for Froot.
  *
  * @example
  * ```ts
- * import { html, raw, escapeHtml } from 'froot/html';
+ * import { html, raw, escapeHtml, exportStatic } from 'frootjs/html';
  * ```
  */
 
-export { html } from '../core/response.js';
+export { html, type HtmlEscapedString, type HtmlValue } from './template.js';
 export { raw, escapeHtml, isRawHtml } from '../jsx/escape.js';
+export { exportStatic, type StaticExportOptions, type StaticExportResult } from './ssg.js';
 export type { RawHtml } from '../jsx/types.js';
