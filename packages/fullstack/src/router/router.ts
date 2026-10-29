@@ -1,16 +1,18 @@
 /**
  * Next.js-style App Router for Froot and Preact.
- * Provides nested layouts, dynamic routes with params, and Static Site Generation (SSG).
+ * Provides nested layouts, dynamic routes with params, file-based routing, and Static Site Generation (SSG).
  */
 
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import type { Froot } from 'frootjs';
 import { isPreactElement, renderPreact } from '../preact/render.js';
+import { discoverRoutes } from './file-router.js';
 import type {
   Metadata,
   PageComponent,
   LayoutComponent,
+  LayoutOptions,
   PageOptions,
   StaticExportOptions,
   StaticExportResult,
@@ -25,12 +27,19 @@ interface RegisteredPage {
 interface RegisteredLayout {
   prefix: string;
   layoutFn: LayoutComponent;
+  options?: LayoutOptions | undefined;
+}
+
+interface RegisteredCssAsset {
+  filePath: string;
+  routePath: string;
 }
 
 export class AppRouter {
   private readonly app: Froot;
   private readonly pages: RegisteredPage[] = [];
   private readonly layouts: RegisteredLayout[] = [];
+  private readonly cssAssets: RegisteredCssAsset[] = [];
 
   constructor(app: Froot) {
     this.app = app;
@@ -41,12 +50,68 @@ export class AppRouter {
    * Example:
    * router.layout('/docs', ({ children, currentPath }) => <DocsLayout currentPath={currentPath}>{children}</DocsLayout>)
    */
-  public layout(prefix: string, layoutFn: LayoutComponent): this {
+  public layout(prefix: string, layoutFn: LayoutComponent, options?: LayoutOptions): this {
     const cleanPrefix = prefix.endsWith('/') && prefix !== '/' ? prefix.slice(0, -1) : prefix;
-    this.layouts.push({ prefix: cleanPrefix, layoutFn });
-    // Sort layouts so most specific (longest) prefixes match first
-    this.layouts.sort((a, b) => b.prefix.length - a.prefix.length);
+    this.layouts.push({ prefix: cleanPrefix, layoutFn, options });
     return this;
+  }
+
+  /**
+   * Discovers matching layouts for currentPath ordered from root (prefix '/') to innermost nested layout.
+   * If any layout sets `isolate: true`, ancestor layouts above it are excluded.
+   */
+  public getMatchingLayouts(currentPath: string): RegisteredLayout[] {
+    const cleanPath = currentPath.endsWith('/') && currentPath !== '/' ? currentPath.slice(0, -1) : currentPath;
+
+    // Sort by prefix length ascending: '/' comes first, then '/docs', etc.
+    const sorted = [...this.layouts].sort((a, b) => a.prefix.length - b.prefix.length);
+    const matched: RegisteredLayout[] = [];
+
+    for (const layout of sorted) {
+      const isMatch =
+        layout.prefix === '/' ||
+        cleanPath === layout.prefix ||
+        cleanPath.startsWith(`${layout.prefix}/`);
+
+      if (isMatch) {
+        if (layout.options?.isolate) {
+          // Isolate removes ancestor wrappers
+          matched.length = 0;
+        }
+        matched.push(layout);
+      }
+    }
+
+    return matched;
+  }
+
+  /**
+   * Serves a compiled CSS file (e.g. Tailwind v4 dist/styles.css) at a route.
+   * Default route is '/styles.css'.
+   */
+  public serveCss(filePath: string, routePath: string = '/styles.css'): this {
+    const resolvedPath = path.resolve(filePath);
+    this.cssAssets.push({ filePath: resolvedPath, routePath });
+
+    this.app.get(routePath, async (c) => {
+      try {
+        const content = await fs.readFile(resolvedPath, 'utf8');
+        c.header('Content-Type', 'text/css; charset=utf-8');
+        c.header('Cache-Control', 'public, max-age=3600');
+        return c.text(content);
+      } catch {
+        return c.text(`/* CSS file not found at ${resolvedPath} */`, 404);
+      }
+    });
+
+    return this;
+  }
+
+  /**
+   * Automatically discovers and registers file-based routes from the specified directory.
+   */
+  public async discover(appDir: string): Promise<{ layouts: string[]; pages: string[] }> {
+    return discoverRoutes(appDir, this);
   }
 
   /**
@@ -87,14 +152,16 @@ export class AppRouter {
         // 3. Render page content
         const pageNode = await pageFn({ params, searchParams, c });
 
-        // 4. Find matching layout (longest prefix match)
+        // 4. Wrap with matching layouts from innermost to outermost (root)
         const currentPath = c.req.path;
-        const matchedLayout = this.findLayout(currentPath);
+        const matchingLayouts = this.getMatchingLayouts(currentPath);
 
         let finalTree = pageNode;
-        if (matchedLayout) {
+        for (let i = matchingLayouts.length - 1; i >= 0; i--) {
+          const matchedLayout = matchingLayouts[i];
+          if (!matchedLayout) continue;
           finalTree = await matchedLayout.layoutFn({
-            children: pageNode,
+            children: finalTree,
             params,
             currentPath,
             ...(metadata !== undefined ? { metadata } : {}),
@@ -130,19 +197,6 @@ export class AppRouter {
     }
 
     return this;
-  }
-
-  /**
-   * Matches the most specific layout for a given route path.
-   */
-  private findLayout(currentPath: string): RegisteredLayout | undefined {
-    for (const layout of this.layouts) {
-      if (layout.prefix === '/') return layout;
-      if (currentPath === layout.prefix || currentPath.startsWith(`${layout.prefix}/`)) {
-        return layout;
-      }
-    }
-    return undefined;
   }
 
   /**
@@ -213,7 +267,20 @@ export class AppRouter {
       renderedRoutes.push(cleanRoute);
     }
 
-    // Copy static assets
+    // Copy registered CSS assets
+    for (const css of this.cssAssets) {
+      try {
+        const rel = css.routePath.startsWith('/') ? css.routePath.slice(1) : css.routePath;
+        const dest = path.join(outDir, rel);
+        await fs.mkdir(path.dirname(dest), { recursive: true });
+        await fs.copyFile(css.filePath, dest);
+        filesWritten.push(dest);
+      } catch {
+        // Continue if CSS file was not generated
+      }
+    }
+
+    // Copy additional static assets
     for (const asset of copyAssets) {
       try {
         const src = path.resolve(asset.from);
@@ -246,4 +313,3 @@ export class AppRouter {
 export function createAppRouter(app: Froot): AppRouter {
   return new AppRouter(app);
 }
-

@@ -28,6 +28,10 @@ export interface LayoutProps<TParams = Record<string, string>> {
   metadata?: Metadata | undefined;
 }
 
+export interface LayoutOptions {
+  isolate?: boolean;
+}
+
 export type PageComponent<TParams = Record<string, string>> = (
   props: PageProps<TParams>
 ) => Promise<ComponentChild | string | VNode<any>> | ComponentChild | string | VNode<any>;

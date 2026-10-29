@@ -6,9 +6,13 @@
 export {
   createAppRouter,
   AppRouter,
+  discoverRoutes,
+  formatRouteSegment,
+  parseRoutePattern,
   type Metadata,
   type PageProps,
   type LayoutProps,
+  type LayoutOptions,
   type PageComponent,
   type LayoutComponent,
   type PageOptions,
