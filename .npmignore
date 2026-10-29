@@ -1,0 +1,9 @@
+src/
+tests/
+examples/
+web/
+.github/
+.vscode/
+tsconfig.json
+eslint.config.js
+pnpm-lock.yaml

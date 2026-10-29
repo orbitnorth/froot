@@ -181,4 +181,4 @@ pnpm example:rpc
 
 ## License
 
-MIT © Mohammed Mallahi & Antigravity
+MIT © OrbitNorth LLC

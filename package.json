@@ -62,11 +62,29 @@
   "scripts": {
     "build": "tsc",
     "test": "node --test tests/*.test.ts",
+    "prepublishOnly": "npm run build && npm run test",
     "web": "node --experimental-strip-types web/server.ts",
     "bench": "node examples/benchmark.ts",
     "example:basic": "node examples/basic.ts",
     "example:streaming": "node examples/streaming.ts",
     "example:rpc": "node examples/rpc-demo.ts"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orbitnorth/froot.git"
+  },
+  "homepage": "https://github.com/orbitnorth/froot#readme",
+  "bugs": {
+    "url": "https://github.com/orbitnorth/froot/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "froot",
@@ -80,7 +98,7 @@
     "wintercg",
     "api"
   ],
-  "author": "Antigravity & Mohammed Mallahi",
+  "author": "OrbitNorth LLC",
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
