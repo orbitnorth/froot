@@ -100,9 +100,9 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "build:web": "node --experimental-strip-types web/src/build.ts",
-    "test": "node --test tests/*.test.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "build:web": "tsx web/src/build.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
     "prepublishOnly": "npm run build && npm run test",
     "web": "node --experimental-strip-types web/server.ts",
     "bench": "node examples/benchmark.ts",
@@ -145,10 +145,12 @@
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.5",
     "eslint": "^10.13.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.8.0",
     "typescript-eslint": "^8.72.0"
   },
   "dependencies": {
+    "@froot/fullstack": "link:../froot-fullstack",
     "preact": "^11.1.0",
     "preact-render-to-string": "^6.8.2"
   }

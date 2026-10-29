@@ -26,3 +26,4 @@ app.use(responseTimer);
 - `cors(options)`: Cross-Origin Resource Sharing headers and preflight handling.
 - `logger()`: Fast request logging with status code colors.
 - `secureHeaders()`: CSP, HSTS, X-Frame-Options, and nosniff protection.
+

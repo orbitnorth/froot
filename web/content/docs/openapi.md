@@ -20,3 +20,4 @@ app.openapi({
 ```
 
 Navigate to `/docs` to explore your interactive Scalar documentation!
+

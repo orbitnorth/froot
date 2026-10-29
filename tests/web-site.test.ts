@@ -4,7 +4,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { app } from '../web/src/app.ts';
+import { app } from '../web/src/app.tsx';
 
 describe('🍏 Froot Official Website & Next.js-Style Docs App', () => {
   it('GET / should serve the landing page with top navbar', async () => {
@@ -52,3 +52,4 @@ describe('🍏 Froot Official Website & Next.js-Style Docs App', () => {
     assert.ok(html.includes('Zero-allocation routing'));
   });
 });
+

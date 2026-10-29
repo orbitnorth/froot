@@ -38,3 +38,4 @@ app.post('/api/items/:id', async (c) => {
 | `c.text(string, status?)` | `text/plain` | `return c.text('Hello World');` |
 | `c.html(markup, status?)` | `text/html` | `return c.html('<h1>Hi</h1>');` |
 | `c.redirect(url, status?)` | Location Header | `return c.redirect('/login', 302);` |
+

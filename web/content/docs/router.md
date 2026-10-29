@@ -34,3 +34,4 @@ app.get('/static/*', (c) => {
   return c.text(`Serving static file: ${file}`);
 });
 ```
+

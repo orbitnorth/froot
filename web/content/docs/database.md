@@ -17,3 +17,4 @@ export const db = drizzle(sqlite);
 ```
 
 Inject your database repository into your service layer or route context for high performance and type-safe query execution.
+

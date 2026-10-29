@@ -23,3 +23,4 @@ Every scaffolded application includes `AGENT.md` and `.cursorrules` with exact c
 ## Built-In llms.txt
 
 Access comprehensive markdown documentation summaries specifically tailored for Large Language Models at `/llms.txt`.
+

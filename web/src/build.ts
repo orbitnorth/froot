@@ -1,11 +1,11 @@
 /**
  * SSG Production Builder for Froot Website & Documentation.
- * Exports pre-rendered HTML and static assets to web/dist.
+ * Powered by @froot/fullstack.
  */
 
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { router } from './app.ts';
+import { router } from './app.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,7 +13,7 @@ const webDir = path.resolve(__dirname, '..');
 const outDir = path.resolve(webDir, 'dist');
 
 async function build(): Promise<void> {
-  console.log('🍏 Building Froot Website & Docs SSG...');
+  console.log('🍏 Building Froot Website & Docs SSG with @froot/fullstack...');
 
   const result = await router.exportStatic({
     outDir,

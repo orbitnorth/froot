@@ -95,3 +95,4 @@ describe('⚛️ Froot Native Preact SSR Integration', () => {
     assert.ok(html2.includes('<h1>Doc: quickstart</h1>'));
   });
 });
+

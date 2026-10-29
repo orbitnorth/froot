@@ -1,0 +1,75 @@
+/** @jsxImportSource preact */
+/**
+ * Next.js-style Frosted Glass Top Navigation Bar for Landing Page.
+ * (Note: Never displayed on documentation pages!)
+ */
+
+export function LandingNavbar() {
+  return (
+    <header
+      id="main-nav"
+      class="sticky top-0 z-50 bg-[#090d16]/80 backdrop-blur-md border-b border-slate-800/80 transition-all duration-300"
+    >
+      <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        {/* Brand */}
+        <a href="/" class="flex items-center gap-2.5 group">
+          <span class="text-2xl transition-transform group-hover:scale-110">🍏</span>
+          <div class="flex items-center gap-2">
+            <span class="text-base font-bold text-white tracking-tight">
+              Froot<span class="text-emerald-400">.ts</span>
+            </span>
+            <span class="text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+              v1.0.4
+            </span>
+          </div>
+        </a>
+
+        {/* Links */}
+        <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300 font-medium">
+          <a href="#features" class="hover:text-emerald-400 transition-colors">
+            Features
+          </a>
+          <a href="#benchmarks" class="hover:text-emerald-400 transition-colors">
+            Benchmarks
+          </a>
+          <a href="#routing" class="hover:text-emerald-400 transition-colors">
+            Router
+          </a>
+          <a href="#runtimes" class="hover:text-emerald-400 transition-colors">
+            Runtimes
+          </a>
+          <a
+            href="/docs"
+            class="text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 transition-colors font-semibold"
+          >
+            <span>Documentation</span>
+            <span class="text-xs">→</span>
+          </a>
+        </nav>
+
+        {/* Action Buttons */}
+        <div class="flex items-center gap-3">
+          <a
+            href="https://github.com/orbitnorth/froot"
+            target="_blank"
+            rel="noreferrer"
+            class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-700/80 hover:border-emerald-500/60 hover:text-white transition-all text-slate-200"
+          >
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+            <span>Star on GitHub</span>
+          </a>
+
+          <a
+            href="/docs"
+            class="hidden sm:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20"
+          >
+            <span>Get Started</span>
+          </a>
+        </div>
+      </div>
+    </header>
+  );
+}
+

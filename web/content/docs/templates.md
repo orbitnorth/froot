@@ -33,3 +33,4 @@ Server-side rendered components using Froot's native zero-dependency JSX engine 
 ## 7. Minimal Starter (`-t minimal`)
 
 Lean single-file starter with essential routes and CORS, ideal for lightweight microservices and rapid prototyping.
+

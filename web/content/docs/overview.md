@@ -22,3 +22,4 @@ summary: Introduction to Froot Framework, design principles, and peak V8 archite
 | Cross-Runtime | Node only | Node only | Yes | **Node, Bun, Deno, Edge** |
 | In-Memory Testing | Needs Port Socket | Needs Inject Mock | app.fetch | **Native app.fetch(Request)** |
 | OpenAPI 3.1 & UI | Manual Plugins | Schema Plugin | Zod OpenAPI | **Built-in Scalar & Swagger** |
+
