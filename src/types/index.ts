@@ -128,6 +128,7 @@ export interface Context<
   serialize<T>(data: T, serializer: (data: T) => string, status?: StatusCode, headers?: HeadersInit): Response;
   text(text: string, status?: StatusCode, headers?: HeadersInit): Response;
   html(html: string, status?: StatusCode, headers?: HeadersInit): Response;
+  preact(vnode: any, status?: StatusCode, headers?: HeadersInit): Response;
   redirect(location: string, status?: StatusCode): Response;
   stream(
     stream: ReadableStream,

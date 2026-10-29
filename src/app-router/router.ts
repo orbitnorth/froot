@@ -9,6 +9,7 @@ import * as path from 'node:path';
 import type { Froot } from '../core/app.js';
 import { renderToHtml } from '../jsx/render.js';
 import { isRawHtml } from '../jsx/escape.js';
+import { isPreactElement, renderPreact } from '../preact/index.js';
 import type {
   Metadata,
   PageComponent,
@@ -106,6 +107,8 @@ export class AppRouter {
           html = finalTree;
         } else if (isRawHtml(finalTree)) {
           html = finalTree.__html;
+        } else if (isPreactElement(finalTree)) {
+          html = renderPreact(finalTree);
         } else {
           html = await renderToHtml(finalTree);
         }

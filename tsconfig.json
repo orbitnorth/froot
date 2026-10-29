@@ -9,6 +9,8 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,

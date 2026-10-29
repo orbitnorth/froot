@@ -16,6 +16,7 @@ import type {
 } from '../types/index.js';
 import { signValue, verifySignedValue } from '../utils/crypto.js';
 import { fastExtractPathname, fastParseQuery } from '../utils/url.js';
+import { renderPreact } from '../preact/index.js';
 
 function parseCookies(headerStr: string): Record<string, string> {
   const result: Record<string, string> = {};
@@ -585,6 +586,14 @@ export class FrootContext<
     (this._res as unknown as { _rawBody?: string | null })._rawBody = bodyStr;
 
     return this._res;
+  }
+
+  /**
+   * Returns a Preact-rendered HTML response.
+   */
+  public preact(vnode: any, status?: StatusCode, headers?: HeadersInit): Response {
+    const htmlStr = renderPreact(vnode);
+    return this.html(htmlStr, status, headers);
   }
 
   /**

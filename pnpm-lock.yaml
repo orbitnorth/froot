@@ -7,6 +7,13 @@ settings:
 importers:
 
   .:
+    dependencies:
+      preact:
+        specifier: ^11.1.0
+        version: 11.1.0(preact-render-to-string@6.8.2)
+      preact-render-to-string:
+        specifier: ^6.8.2
+        version: 6.8.2(preact@11.1.0)
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -375,6 +382,19 @@ packages:
   picomatch@4.0.7:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
+
+  preact-render-to-string@6.8.2:
+    resolution: {integrity: sha512-Hdx7cKD3AMYgt795TdddBpUbuGEFoL/VeA6s7VrBt9Gjt0r6rCy5wMp5xkDjQ9cbKj62frHsEx1x8yV6EjoOpg==}
+    peerDependencies:
+      preact: '>=10 || >= 11.0.0-0'
+
+  preact@11.1.0:
+    resolution: {integrity: sha512-hz1VsjWx5pSYPDVEzb9w+XyOmQpP1qW/ZEaMiYm+C8ykJr8KP+TKGZIbCW0QmZ/Yr/jg3XkZoziEWn9iWHZ9Mw==}
+    peerDependencies:
+      preact-render-to-string: '>=6.7.0'
+    peerDependenciesMeta:
+      preact-render-to-string:
+        optional: true
 
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
@@ -824,6 +844,14 @@ snapshots:
   path-key@3.1.1: {}
 
   picomatch@4.0.7: {}
+
+  preact-render-to-string@6.8.2(preact@11.1.0):
+    dependencies:
+      preact: 11.1.0(preact-render-to-string@6.8.2)
+
+  preact@11.1.0(preact-render-to-string@6.8.2):
+    optionalDependencies:
+      preact-render-to-string: 6.8.2(preact@11.1.0)
 
   prelude-ls@1.2.1: {}
 

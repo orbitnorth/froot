@@ -70,6 +70,10 @@
       "types": "./dist/html/index.d.ts",
       "import": "./dist/html/index.js"
     },
+    "./preact": {
+      "types": "./dist/preact/index.d.ts",
+      "import": "./dist/preact/index.js"
+    },
     "./cors": {
       "types": "./dist/middleware/cors.d.ts",
       "import": "./dist/middleware/cors.js"
@@ -143,5 +147,9 @@
     "eslint": "^10.13.0",
     "typescript": "^5.8.0",
     "typescript-eslint": "^8.72.0"
+  },
+  "dependencies": {
+    "preact": "^11.1.0",
+    "preact-render-to-string": "^6.8.2"
   }
 }
