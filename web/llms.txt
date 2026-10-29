@@ -108,3 +108,4 @@ describe('App routes', () => {
 2. **Never call \`next(err)\`:** Throw errors directly or use \`app.onError((err, c) => ...)\`.
 3. **Always use \`frootjs\`:** The npm package is \`frootjs\`, NOT \`create-froot\` or obsolete names.
 4. **Scaffolding:** Always generate with \`AGENT.md\` and \`.cursorrules\` which are added by default by \`create-frootjs\`.
+
