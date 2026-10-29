@@ -1,25 +1,26 @@
-# 🍏 Froot Framework
+# Froot Framework
 
-> Ultra-fast, highly flexible, TypeScript-native web framework engineered for peak V8 performance, multi-runtime portability, and zero-compromise developer ergonomics.
+> High-performance, flexible, TypeScript-native web framework engineered for peak V8 performance, multi-runtime portability, and clean developer ergonomics.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8%2B-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![npm version](https://img.shields.io/npm/v/frootjs.svg)](https://www.npmjs.com/package/frootjs)
 [![Runtimes](https://img.shields.io/badge/Runtimes-Node%20%7C%20Bun%20%7C%20Deno%20%7C%20WinterCG-green.svg)](#)
 
 ---
 
 ## Why Froot?
 
-| Feature | Express.js | Fastify | **Froot** |
+| Feature | Express.js | Fastify | Froot |
 | :--- | :--- | :--- | :--- |
 | **Language** | JavaScript (external `@types`) | JavaScript / TypeScript | **100% Native TypeScript** |
-| **Route Param Type Safety** | ❌ Manual casting | ⚠️ Verbose generics | ✅ **Automatic compile-time deduction** |
-| **V8 Hidden Classes** | ❌ Broken via `setPrototypeOf` | ✅ Shaped constructor | ✅ **Monomorphic context + lazy getters** |
-| **Router Architecture** | Linear $O(N)$ scan | Radix Tree | **Smart Tri-Tier (Static $O(1)$ + RegExp + Radix)** |
-| **Static Route Lookup** | Slow regex array | Radix tree traversal | **40,000,000+ ops/sec ($O(1)$ Hash Map)** |
+| **Route Param Type Safety** | No (manual casting) | Partial (verbose generics) | **Automatic compile-time deduction** |
+| **V8 Hidden Classes** | Broken via `setPrototypeOf` | Shaped constructor | **Monomorphic context + lazy getters** |
+| **Router Architecture** | Linear O(N) scan | Radix Tree | **Smart Tri-Tier (Static O(1) + RegExp + Radix)** |
+| **Static Route Lookup** | Slow regex array | Radix tree traversal | **40,000,000+ ops/sec (O(1) Hash Map)** |
 | **Runtimes** | Node.js only | Primarily Node.js | **Dual-Engine: WinterCG + Native Node.js** |
-| **Middleware** | Callback hell `(req, res, next)` | 11 lifecycle hooks | **Async Onion Pipeline (`await next()`)** |
-| **Type-Safe RPC Client** | ❌ None | ❌ None | ✅ **Built-in `createFrootClient<App>()`** |
+| **Middleware** | Callback style `(req, res, next)` | 11 lifecycle hooks | **Async Onion Pipeline (`await next()`)** |
+| **Type-Safe RPC Client** | None | None | **Built-in `createFrootClient<App>()`** |
 | **Standards Compliance** | Custom legacy streams | Custom legacy streams | **RFC 9457 Problem Details + Web Standards** |
 
 ---
@@ -30,6 +31,8 @@
 
 ```bash
 pnpm add frootjs
+# or
+npm install frootjs
 ```
 
 ### 2. Basic Server
@@ -43,13 +46,13 @@ const app = new Froot();
 app.get('/health', (c) => c.json({ status: 'ok' }));
 
 // Dynamic route (Tier 2: Single-pass compiled RegExp)
-// c.param('userId') is strictly typed from the route path!
+// c.param('userId') is strictly typed from the route path:
 app.get('/users/:userId', (c) => {
   const userId = c.param('userId'); // string
   return c.json({ id: userId, name: 'Alice' });
 });
 
-// Run with Node.js engine (with socket tuning)
+// Run with Node.js engine:
 app.listen(3000, () => {
   console.log('Froot server listening on http://localhost:3000');
 });
@@ -60,18 +63,56 @@ export default app;
 
 ---
 
+## Subpath Imports
+
+Froot provides clean, tree-shakeable subpath imports:
+
+```typescript
+// Core Application
+import { Froot } from 'frootjs';
+
+// WebCrypto Auth & JWT
+import { jwt, sign, verify } from 'frootjs/jwt';
+import { basicAuth } from 'frootjs/basic-auth';
+
+// Streaming & Server-Sent Events (RFC 8895)
+import { stream, streamSSE, streamText, sleep } from 'frootjs/streaming';
+
+// WebSockets
+import { upgradeWebSocket, createHub } from 'frootjs/ws';
+
+// OpenAPI 3.1 & Scalar Docs
+import { buildOpenAPISpec, scalarUIPage } from 'frootjs/openapi';
+
+// Native JSX Engine & SSR
+import { jsx, Fragment, renderToHtml, jsxRenderer } from 'frootjs/jsx';
+import { html, raw, escapeHtml } from 'frootjs/html';
+
+// Middleware
+import { cors } from 'frootjs/cors';
+import { logger } from 'frootjs/logger';
+import { timing } from 'frootjs/timing';
+import { security } from 'frootjs/security';
+import { bearerAuth } from 'frootjs/bearer-auth';
+
+// Client RPC
+import { createFrootClient } from 'frootjs/client';
+```
+
+---
+
 ## Core Features
 
 ### 1. Smart Tri-Tier Routing Engine
 Froot routes requests through three distinct optimization tiers:
-1. **Tier 1 (Exact Static Map):** Routes without dynamic parameters are dispatched via direct JavaScript `Map` lookup at **40M+ ops/sec**.
-2. **Tier 2 (Compiled Single-Pass RegExpRouter):** Parameterized routes (`/users/:userId/posts/:postId`) are compiled ahead of time into a single unified regular expression. Route matching and parameter extraction happen in a single engine step.
-3. **Tier 3 (Radix Trie):** Catch-all wildcards (`*`, `/assets/*path`) seamlessly route through an optimized prefix tree.
+1. **Tier 1 (Exact Static Map):** Routes without dynamic parameters are dispatched via direct JavaScript `Map` lookup at 40M+ ops/sec.
+2. **Tier 2 (Compiled Single-Pass RegExpRouter):** Parameterized routes (`/users/:userId/posts/:postId`) are compiled ahead of time into a single unified regular expression. Route matching and parameter extraction happen in a single step.
+3. **Tier 3 (Radix Trie):** Catch-all wildcards (`*`, `/assets/*path`) route through an optimized prefix tree.
 
 ### 2. Monomorphic Context with Lazy Evaluation
 Unlike Express which mutates `Object.setPrototypeOf(req)` and ruins V8 hidden classes:
 - `FrootContext` preserves fixed object shapes.
-- Query parameters, cookies, and request bodies are parsed **lazily on first access**. Zero CPU overhead is spent parsing query strings or bodies for routes that don't need them.
+- Query parameters, cookies, and request bodies are parsed lazily on first access. Zero CPU overhead is spent parsing query strings or bodies for routes that do not need them.
 
 ### 3. Asynchronous Onion Pipeline
 Pure `async/await` middleware execution model:
@@ -85,7 +126,7 @@ app.use(async (c, next) => {
 ```
 
 ### 4. Zero-Codegen End-to-End Typed RPC Client
-Share types between backend and frontend without any code-generation step:
+Share types between backend and frontend without code-generation:
 
 ```typescript
 // backend.ts
@@ -95,12 +136,12 @@ const app = new Froot()
 export type AppType = typeof app;
 
 // frontend.ts
-import { createFrootClient } from 'froot/client';
+import { createFrootClient } from 'frootjs/client';
 import type { AppType } from './backend';
 
 const client = createFrootClient<AppType>({ baseUrl: 'http://localhost:3000' });
 
-// Fully type-checked route, params, and response!
+// Fully type-checked route, params, and response:
 const res = await client.api.users[':id'].get({
   param: { id: '42' }
 });
@@ -108,11 +149,11 @@ const user = await res.json(); // Inferred as { id: string; name: string }
 ```
 
 ### 5. Multi-Runtime Support (Write Once, Run Anywhere)
-Froot is built on the standard Web Fetch API (`Request` and `Response`), allowing your application to run seamlessly across all modern JavaScript runtimes without code changes:
+Froot is built on the standard Web Fetch API (`Request` and `Response`), allowing your application to run seamlessly across all modern JavaScript runtimes:
 
 - **Node.js**: Low-latency native engine with socket tuning (`setNoDelay(true)`, `keepAliveTimeout`):
   ```typescript
-  import { Froot } from 'froot';
+  import { Froot } from 'frootjs';
   const app = new Froot();
   app.listen(3000);
   ```
@@ -132,7 +173,6 @@ Froot is built on the standard Web Fetch API (`Request` and `Response`), allowin
 
 - **Bun**: Ultra-fast native execution:
   ```typescript
-  // Bun natively recognizes `export default app` or `Bun.serve(app)`
   export default app;
   ```
 
@@ -143,23 +183,15 @@ Froot is built on the standard Web Fetch API (`Request` and `Response`), allowin
 
 - **AWS Lambda**: Serverless adapter for API Gateway v2 and Function URLs:
   ```typescript
-  import { handle } from 'froot/adapters/aws-lambda';
+  import { handle } from 'frootjs/adapters/aws-lambda';
   export const handler = handle(app);
   ```
 
 - **Runtime Detection Utility**:
   ```typescript
-  import { getRuntime } from 'froot/runtime';
+  import { getRuntime } from 'frootjs/runtime';
   console.log(getRuntime()); // 'node' | 'bun' | 'deno' | 'workerd' | 'fastly' | 'edge-light'
   ```
-
-### 6. First-Party Batteries Included
-- `cors()`: High-performance CORS preflight and headers.
-- `logger()`: Zero-overhead structured JSON or pretty logger.
-- `security()`: Modern Helmet-equivalent security headers (CSP, HSTS, X-Content-Type-Options).
-- `timing()`: Standard `Server-Timing` metrics injector.
-- `validate()`: Standard Schema (TypeBox, Zod, ArkType) validator with RFC 9457 Problem Details error handling.
-- `c.streamSSE()`: Native Server-Sent Events stream generator.
 
 ---
 
@@ -181,4 +213,4 @@ pnpm example:rpc
 
 ## License
 
-MIT © OrbitNorth LLC
+MIT (c) OrbitNorth LLC
