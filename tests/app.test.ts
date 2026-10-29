@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { Froot, HTTPException } from 'froot';
+import { Froot, HTTPException } from 'frootjs';
 
 describe('Application Core & Onion Middleware', () => {
   it('should execute middleware in strict onion order', async () => {

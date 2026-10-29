@@ -1,8 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { Froot } from 'froot';
-import { handle, type LambdaEventV2 } from 'froot/adapters/aws-lambda';
-import { getRuntime } from 'froot/runtime';
+import { Froot } from 'frootjs';
+import { handle, type LambdaEventV2 } from 'frootjs/adapters/aws-lambda';
+import { getRuntime } from 'frootjs/runtime';
 
 describe('Multi-Runtime & Serverless Adapters', () => {
   it('should detect current runtime as node', () => {

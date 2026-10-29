@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { Froot } from 'froot';
-import { validate, type StandardSchemaV1 } from 'froot/middleware';
+import { Froot } from 'frootjs';
+import { validate, type StandardSchemaV1 } from 'frootjs/middleware';
 
 describe('Schema Validator & RFC 9457 Problem Details', () => {
   it('should accept valid payload using Standard Schema (~standard)', async () => {

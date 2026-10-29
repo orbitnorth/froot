@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { Froot } from 'froot';
-import { createFrootClient } from 'froot/client';
+import { Froot } from 'frootjs';
+import { createFrootClient } from 'frootjs/client';
 
 describe('Type-Safe RPC Client', () => {
   it('should perform in-memory RPC calls directly through app.fetch', async () => {

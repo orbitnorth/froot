@@ -29,13 +29,13 @@
 ### 1. Installation
 
 ```bash
-pnpm add froot
+pnpm add frootjs
 ```
 
 ### 2. Basic Server
 
 ```typescript
-import { Froot } from 'froot';
+import { Froot } from 'frootjs';
 
 const app = new Froot();
 

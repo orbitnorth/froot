@@ -19,41 +19,41 @@ describe('Froot Subpath Export Parity (Hono-style)', () => {
     assert.equal(typeof Froot, 'function');
   });
 
-  it('exports JWT helpers directly for froot/jwt', () => {
+  it('exports JWT helpers directly for frootjs/jwt', () => {
     assert.equal(typeof jwt, 'function');
     assert.equal(typeof sign, 'function');
     assert.equal(typeof verify, 'function');
   });
 
-  it('exports basicAuth for froot/basic-auth', () => {
+  it('exports basicAuth for frootjs/basic-auth', () => {
     assert.equal(typeof basicAuth, 'function');
   });
 
-  it('exports html & raw utilities for froot/html', () => {
+  it('exports html & raw utilities for frootjs/html', () => {
     assert.equal(typeof html, 'function');
     assert.equal(typeof raw, 'function');
     assert.equal(typeof escapeHtml, 'function');
   });
 
-  it('exports cors middleware directly for froot/cors', () => {
+  it('exports cors middleware directly for frootjs/cors', () => {
     assert.equal(typeof cors, 'function');
   });
 
-  it('exports logger middleware directly for froot/logger', () => {
+  it('exports logger middleware directly for frootjs/logger', () => {
     assert.equal(typeof logger, 'function');
   });
 
-  it('exports streaming helpers for froot/streaming', () => {
+  it('exports streaming helpers for frootjs/streaming', () => {
     assert.equal(typeof stream, 'function');
     assert.equal(typeof streamSSE, 'function');
   });
 
-  it('exports WebSocket utilities for froot/ws', () => {
+  it('exports WebSocket utilities for frootjs/ws', () => {
     assert.equal(typeof upgradeWebSocket, 'function');
     assert.equal(typeof createHub, 'function');
   });
 
-  it('exports OpenAPI builder for froot/openapi', () => {
+  it('exports OpenAPI builder for frootjs/openapi', () => {
     assert.equal(typeof buildOpenAPISpec, 'function');
   });
 });

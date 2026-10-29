@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { Froot } from 'froot';
+import { Froot } from 'frootjs';
 
 describe('Smart Router & Route Matching', () => {
   it('should match Tier 1 static routes with exact O(1) speed', async () => {

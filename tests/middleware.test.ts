@@ -2,8 +2,8 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Froot } from 'froot';
-import { cors, security, timing, logger, etag, bodyLimit, bearerAuth, rateLimiter, serveStatic } from 'froot/middleware';
+import { Froot } from 'frootjs';
+import { cors, security, timing, logger, etag, bodyLimit, bearerAuth, rateLimiter, serveStatic } from 'frootjs/middleware';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

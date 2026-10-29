@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { Froot } from 'froot';
+import { Froot } from 'frootjs';
 
 describe('Context & Request Abstraction', () => {
   it('should format JSON responses with proper headers and status', async () => {

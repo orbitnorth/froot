@@ -14,7 +14,7 @@ import {
   jsxRenderer,
   type FC
 } from '../dist/jsx/index.js';
-import { Froot } from 'froot';
+import { Froot } from 'frootjs';
 
 describe('🍏 Froot JSX Engine (Unit & SSR Tests)', () => {
   it('should render basic intrinsic HTML elements', async () => {

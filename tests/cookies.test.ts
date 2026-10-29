@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { Froot } from 'froot';
+import { Froot } from 'frootjs';
 
 describe('Cookies & Context Ergonomics Integration Suite', () => {
   const SECRET_KEY = 'super-secret-production-encryption-key';

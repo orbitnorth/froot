@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { LazyHeaders } from '../dist/utils/headers.js';
-import { Froot } from 'froot';
+import { Froot } from 'frootjs';
 
 describe('LazyHeaders & Fast Header Resolution', () => {
   it('should read raw headers case-insensitively without mutation', () => {
