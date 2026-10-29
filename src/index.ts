@@ -107,6 +107,8 @@ export {
 export {
   sign,
   verify,
+  signJwt,
+  verifyJwt,
   jwt,
   basicAuth,
   timingSafeEqual,

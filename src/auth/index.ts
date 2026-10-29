@@ -14,7 +14,7 @@
  */
 
 // JWT
-export { sign, verify, jwt } from './jwt.js';
+export { sign, verify, jwt, signJwt, verifyJwt } from './jwt.js';
 
 // Basic Auth
 export { basicAuth, timingSafeEqual } from './basic.js';

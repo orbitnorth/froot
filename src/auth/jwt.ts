@@ -272,3 +272,6 @@ export function jwt(
     return next();
   };
 }
+
+export { sign as signJwt, verify as verifyJwt };
+
