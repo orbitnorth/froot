@@ -1,2 +1,1 @@
-# Netlify redirect rules
-# Dynamic static pages are pre-rendered into /docs/quickstart/index.html
+# Netlify static routing
