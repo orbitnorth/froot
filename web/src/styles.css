@@ -357,32 +357,173 @@ body {
   border: none;
 }
 
-.prose table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1.5rem 0;
-  font-size: 0.875rem;
-}
-
-.prose th {
-  background: rgba(255, 255, 255, 0.04);
-  color: #ffffff;
-  text-align: left;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border-subtle);
+/* ==========================================================================
+   Syntax Highlighting Tokens (Tokyo Night / GitHub Dark Theme)
+   ========================================================================== */
+.token-keyword {
+  color: #c084fc !important; /* purple-400 */
   font-weight: 600;
 }
-
-.prose td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+.token-string {
+  color: #6ee7b7 !important; /* emerald-300 */
+}
+.token-comment {
+  color: #64748b !important; /* slate-500 */
+  font-style: italic;
+}
+.token-fn {
+  color: #60a5fa !important; /* blue-400 */
+}
+.token-type {
+  color: #facc15 !important; /* yellow-400 */
+}
+.token-class {
+  color: #2dd4bf !important; /* teal-400 */
+  font-weight: 600;
+}
+.token-number {
+  color: #fb923c !important; /* orange-400 */
+}
+.token-boolean {
+  color: #fb923c !important; /* orange-400 */
+  font-weight: 600;
+}
+.token-property {
+  color: #93c5fd !important; /* blue-300 */
+}
+.token-ident {
+  color: #e2e8f0 !important; /* slate-200 */
+}
+.token-punct {
+  color: #94a3b8 !important; /* slate-400 */
+}
+.token-regex {
+  color: #f472b6 !important; /* pink-400 */
+}
+.token-flag {
+  color: #38bdf8 !important; /* sky-400 */
+}
+.token-prompt {
+  color: #34d399 !important; /* emerald-400 */
+}
+.token-variable {
+  color: #67e8f9 !important; /* cyan-300 */
+}
+.token-color {
+  color: #34d399 !important; /* emerald-400 */
 }
 
-.prose tr:hover td {
-  background: rgba(255, 255, 255, 0.02);
+/* Code block typography and card */
+.code-card {
+  margin: 1.5rem 0 !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: #090e17 !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6) !important;
+  overflow: hidden !important;
 }
 
-/* Custom Scrollbar */
+.code-card pre {
+  margin: 0 !important;
+  background: #090e17 !important;
+  line-height: 1.65 !important;
+  padding: 1.25rem !important;
+}
+
+.code-card pre code {
+  color: #e2e8f0 !important;
+  font-family: var(--font-mono) !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* ==========================================================================
+   Table Styling (Prevents text overlap and provides breathing room)
+   ========================================================================== */
+.table-container {
+  margin: 2rem 0 !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(7, 11, 19, 0.85) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6) !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+table, .prose table {
+  width: 100% !important;
+  min-width: 600px !important;
+  border-collapse: collapse !important;
+  text-align: left !important;
+  font-size: 0.875rem !important;
+  line-height: 1.6 !important;
+  margin: 0 !important;
+}
+
+thead, .prose thead {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+th, .prose th {
+  padding: 0.875rem 1.25rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #ffffff !important;
+  white-space: nowrap !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: transparent !important;
+}
+
+td, .prose td {
+  padding: 0.875rem 1.25rem !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: #cbd5e1 !important;
+  vertical-align: middle !important;
+}
+
+tbody tr:hover, .prose tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+tbody tr:last-child td, .prose tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Froot column highlight in tables */
+th:last-child, td:last-child strong {
+  color: #34d399 !important;
+}
+
+/* ==========================================================================
+   Sidebar Scrollbar Killer (Doc sidebar must NOT contain visible scrollbar)
+   ========================================================================== */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important;    /* Firefox */
+}
+
+#docs-sidebar, #docs-nav-tree {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+#docs-sidebar::-webkit-scrollbar, #docs-nav-tree::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Custom Scrollbar for Main Content */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -400,3 +541,4 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+

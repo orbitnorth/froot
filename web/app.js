@@ -316,7 +316,68 @@ export default app;</code></pre>`
   }
 ];
 
-// 3. Tab Switching for Multi-Runtime Code
+// 3. Syntax Highlighting & Tab Switching for Multi-Runtime Code
+function highlightCodeClient(code, lang) {
+  if (!code) return '';
+
+  if (lang === 'tailwind' || lang === 'css') {
+    return code
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="token-comment">$1</span>')
+      .replace(/(@[a-zA-Z0-9_-]+)/g, '<span class="token-keyword font-bold">$1</span>')
+      .replace(/("(?:\\"|[^"\n])*?"|'(?:\\'|[^'\n])*?')/g, '<span class="token-string">$1</span>')
+      .replace(/(#[0-9a-fA-F]{3,8})/g, '<span class="token-color">$1</span>')
+      .replace(/(--[a-zA-Z0-9_-]+)/g, '<span class="token-variable text-cyan-300">$1</span>');
+  }
+
+  const tokens = [];
+  let masked = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // 1. Line and block comments
+  masked = masked.replace(/(\/\*[\s\S]*?\*\/|\/\/.*)/g, (m) => {
+    const id = `__TOK_${tokens.length}__`;
+    tokens.push(`<span class="token-comment">${m}</span>`);
+    return id;
+  });
+
+  // 2. Strings (template, double, single)
+  masked = masked.replace(/(`(?:\\`|[\s\S])*?`|"(?:\\"|[^"\n])*?"|'(?:\\'|[^'\n])*?')/g, (m) => {
+    const id = `__TOK_${tokens.length}__`;
+    tokens.push(`<span class="token-string">${m}</span>`);
+    return id;
+  });
+
+  // 3. Keywords
+  const keywords =
+    /\b(import|export|from|as|default|const|let|var|function|return|async|await|if|else|switch|case|break|continue|for|while|try|catch|finally|throw|new|typeof|instanceof|void|this|class|extends|interface|type)\b/g;
+  masked = masked.replace(keywords, '<span class="token-keyword">$1</span>');
+
+  // 4. Types & Classes
+  const types =
+    /\b(string|number|boolean|any|unknown|never|void|Record|Array|Promise|Set|Map|Froot|AppRouter|Request|Response|Headers|ReadableStream|KVNamespace|D1Database)\b/g;
+  masked = masked.replace(types, '<span class="token-type">$1</span>');
+
+  // 5. Booleans and null
+  const booleans = /\b(true|false|null|undefined)\b/g;
+  masked = masked.replace(booleans, '<span class="token-boolean">$1</span>');
+
+  // 6. Numbers
+  const numbers = /\b(\d+(?:\.\d+)?)\b/g;
+  masked = masked.replace(numbers, '<span class="token-number">$1</span>');
+
+  // 7. Function calls: ident followed by '('
+  masked = masked.replace(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)(?=\s*\()/g, '<span class="token-fn">$1</span>');
+
+  // Restore protected comments and strings
+  for (let i = 0; i < tokens.length; i++) {
+    masked = masked.replace(`__TOK_${i}__`, tokens[i]);
+  }
+
+  return masked;
+}
+
 function setupRuntimeTabs() {
   const tabs = document.querySelectorAll('.tab-btn');
   const codeBlock = document.getElementById('runtime-code-block');
@@ -324,7 +385,7 @@ function setupRuntimeTabs() {
   function renderTab(tabKey) {
     tabs.forEach((t) => t.classList.toggle('active', t.getAttribute('data-tab') === tabKey));
     if (codeBlock && RUNTIME_SNIPPETS[tabKey]) {
-      codeBlock.textContent = RUNTIME_SNIPPETS[tabKey];
+      codeBlock.innerHTML = highlightCodeClient(RUNTIME_SNIPPETS[tabKey], tabKey);
     }
   }
 

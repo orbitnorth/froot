@@ -5,7 +5,43 @@
  * feature bento grid, syntax-highlighted code showcase, and zero runtime CDN dependencies.
  */
 
+import { highlightCode } from '@froot/fullstack';
 import { LandingNavbar } from './LandingNavbar.js';
+
+const INITIAL_FULLSTACK_CODE = `// src/app/page.tsx - Next.js App Router with Preact SSR & Tailwind v4
+export const metadata = {
+  title: 'Froot Fullstack — Next.js Alternative',
+  description: '124,000+ req/sec fullstack web engine with Preact SSR and file-based routing',
+};
+
+export default function HomePage() {
+  return (
+    <div class="max-w-4xl mx-auto px-6 py-20 text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400 mb-6">
+        Next.js Alternative • Preact SSR • Tailwind CSS v4
+      </div>
+      <h1 class="text-5xl font-extrabold text-white tracking-tight mb-4">
+        Extreme Performance <span class="text-emerald-400">Fullstack Engine</span>
+      </h1>
+      <p class="text-slate-300 text-lg max-w-2xl mx-auto">
+        Sub-millisecond JSX SSR with zero runtime CDN scripts and O(1) route dispatch.
+      </p>
+    </div>
+  );
+}`;
+
+const INITIAL_RPC_JSON = JSON.stringify(
+  {
+    status: 'online',
+    framework: 'Froot',
+    version: '1.0.6',
+    throughput: '124,310 req/s',
+    avgLatency: '0.81ms',
+    runtime: 'Node.js (V8 Monomorphic Engine)',
+  },
+  null,
+  2
+);
 
 export function LandingPage() {
   return (
@@ -414,9 +450,9 @@ export function LandingPage() {
               </div>
             </div>
 
-            {/* Code Body */}
+            {/* Code Body with Server-Side Syntax Highlighting */}
             <div class="p-6 overflow-x-auto font-mono text-xs sm:text-sm leading-relaxed text-slate-200">
-              <pre><code id="runtime-code-block" class="language-typescript" /></pre>
+              <pre><code id="runtime-code-block" class="language-typescript" dangerouslySetInnerHTML={{ __html: highlightCode(INITIAL_FULLSTACK_CODE, 'typescript') }} /></pre>
             </div>
           </div>
         </section>
@@ -475,7 +511,7 @@ export function LandingPage() {
                     V8 Dispatch: 0.72 ms
                   </span>
                 </div>
-                <pre class="font-mono text-xs sm:text-sm text-emerald-300 overflow-x-auto"><code id="rpc-json-output" class="language-json" /></pre>
+                <pre class="font-mono text-xs sm:text-sm text-emerald-300 overflow-x-auto"><code id="rpc-json-output" class="language-json" dangerouslySetInnerHTML={{ __html: highlightCode(INITIAL_RPC_JSON, 'json') }} /></pre>
               </div>
             </div>
           </div>

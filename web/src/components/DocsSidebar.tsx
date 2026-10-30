@@ -14,7 +14,7 @@ export function DocsSidebar({ currentSlug }: DocsSidebarProps) {
   return (
     <aside
       id="docs-sidebar"
-      class="fixed inset-y-0 left-0 z-50 w-72 lg:w-80 bg-[#070b13] border-r border-slate-800 flex flex-col transition-transform -translate-x-full md:translate-x-0"
+      class="fixed inset-y-0 left-0 z-50 w-72 lg:w-80 bg-[#070b13] border-r border-slate-800 flex flex-col transition-transform -translate-x-full md:translate-x-0 no-scrollbar select-none"
     >
       {/* Sidebar Header & Back to Landing Link */}
       <div class="p-5 border-b border-slate-800/80 flex items-center justify-between">
@@ -77,8 +77,8 @@ export function DocsSidebar({ currentSlug }: DocsSidebarProps) {
         </div>
       </div>
 
-      {/* Left Navigation Tree */}
-      <nav class="flex-1 overflow-y-auto p-4 space-y-6" id="docs-nav-tree">
+      {/* Left Navigation Tree without scrollbar */}
+      <nav class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-6" id="docs-nav-tree">
         {DOCS_NAV.map((cat) => (
           <div key={cat.title} class="space-y-2">
             <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2">
