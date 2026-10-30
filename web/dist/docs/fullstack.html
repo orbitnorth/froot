@@ -3,7 +3,7 @@
 <p><strong><code>@froot/fullstack</code></strong> is a high-performance, lightweight <strong>Next.js alternative</strong> powered by the <strong>Froot Core monomorphic engine</strong>, <strong>Preact SSR</strong>, and <strong>Tailwind CSS v4</strong>.</p>
 <p>It gives you the familiar developer ergonomics of Next.js App Router (file-based routing, nested layouts, bracket parameters, and static site export) without the React runtime baggage or heavy compilation times.</p>
 <p>---</p>
-<h2 id="key-highlights" id="key-highlights">Key Highlights</h2>
+<h2 id="key-highlights">Key Highlights</h2>
 <ul>
 <li>⚡ <strong>124,000+ req/sec:</strong> Built on Froot's monomorphic V8 core with zero heap churn.</li>
 <li>⚛️ <strong>Native Preact SSR:</strong> 3kB component runtime delivering sub-millisecond SSR.</li>
@@ -17,7 +17,7 @@
 <li>📝 <strong>Zero-Dependency Markdown Engine:</strong> Built-in frontmatter and markdown parser.</li>
 </ul>
 <p>---</p>
-<h2 id="built-in-tailwind-css-v4-engine" id="built-in-tailwind-css-v4-engine">Built-in Tailwind CSS v4 Engine</h2>
+<h2 id="built-in-tailwind-css-v4-engine">Built-in Tailwind CSS v4 Engine</h2>
 <p>Unlike traditional setups that require manual terminal watchers (<code>dev:css</code>) or insecure runtime CDN tags, Froot Fullstack includes a <strong>built-in Tailwind CSS v4 pipeline</strong>:</p>
 <div class="code-card my-6 rounded-xl border border-white/10 bg-[#070b13] overflow-hidden shadow-lg"><div class="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-white/[0.03] text-xs text-slate-400 font-mono"><span class="text-emerald-400 font-semibold">typescript</span><button class="copy-btn hover:text-emerald-300 transition-colors text-[11px] font-mono px-2 py-0.5 rounded bg-white/[0.04] border border-white/10" onclick="copyCode(this)">Copy</button></div><pre class="p-4 overflow-x-auto text-sm font-mono leading-relaxed"><code class="language-typescript"><span class="token-comment">// src/server.tsx</span>
 <span class="token-keyword">import</span> <span class="token-punct">*</span> <span class="token-keyword">as</span> <span class="token-ident">path</span> <span class="token-keyword">from</span> <span class="token-string">&#39;node:path&#39;</span><span class="token-punct">;</span>
@@ -63,7 +63,7 @@
 <span class="token-punct">}</span></code></pre></div>
 <p>The router automatically serves the compiled CSS at <code>/styles.css</code> with instant hot-reloading in development and minification in production.</p>
 <p>---</p>
-<h2 id="file-based-routing-structure" id="file-based-routing-structure">File-Based Routing Structure</h2>
+<h2 id="file-based-routing-structure">File-Based Routing Structure</h2>
 <p>Froot Fullstack adopts Next.js App Router conventions:</p>
 <div class="code-card my-6 rounded-xl border border-white/10 bg-[#070b13] overflow-hidden shadow-lg"><div class="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-white/[0.03] text-xs text-slate-400 font-mono"><span class="text-emerald-400 font-semibold">terminal</span><button class="copy-btn hover:text-emerald-300 transition-colors text-[11px] font-mono px-2 py-0.5 rounded bg-white/[0.04] border border-white/10" onclick="copyCode(this)">Copy</button></div><pre class="p-4 overflow-x-auto text-sm font-mono leading-relaxed"><code><span class="token-ident">src</span><span class="token-punct">/</span>
 <span class="token-punct">├──</span> <span class="token-ident">app</span><span class="token-punct">/</span>
@@ -136,7 +136,7 @@
   <span class="token-punct">);</span>
 <span class="token-punct">}</span></code></pre></div>
 <p>---</p>
-<h2 id="static-site-generation-ssg" id="static-site-generation-ssg">Static Site Generation (SSG)</h2>
+<h2 id="static-site-generation-ssg">Static Site Generation (SSG)</h2>
 <p>To pre-render your entire application into static HTML and CSS files ready for Netlify, Vercel, or AWS S3:</p>
 <div class="code-card my-6 rounded-xl border border-white/10 bg-[#070b13] overflow-hidden shadow-lg"><div class="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-white/[0.03] text-xs text-slate-400 font-mono"><span class="text-emerald-400 font-semibold">typescript</span><button class="copy-btn hover:text-emerald-300 transition-colors text-[11px] font-mono px-2 py-0.5 rounded bg-white/[0.04] border border-white/10" onclick="copyCode(this)">Copy</button></div><pre class="p-4 overflow-x-auto text-sm font-mono leading-relaxed"><code class="language-typescript"><span class="token-comment">// src/build.ts</span>
 <span class="token-class">process</span><span class="token-punct">.</span><span class="token-ident">env</span><span class="token-punct">[&#39;</span><span class="token-ident">FROOT_BUILD</span><span class="token-string">&#39;] = &#39;</span><span class="token-boolean">true</span><span class="token-punct">&#39;;</span>
@@ -157,12 +157,12 @@
 
 <span class="token-fn">build</span><span class="token-punct">();</span></code></pre></div>
 <p>---</p>
-<h2 id="next-steps" id="next-steps">Next Steps</h2>
+<h2 id="next-steps">Next Steps</h2>
 <ul>
 <li>Explore <a href="/docs/templates">Architecture Templates</a></li>
 <li>Check out <a href="/docs/streaming">Real-Time Streaming & SSE</a></li>
 <li>Learn about <a href="/docs/router">End-to-End Type-Safe RPC</a></li>
-</ul></article></div><aside class="hidden xl:block w-56 shrink-0 sticky top-12 self-start py-2"><div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-3">On This Page</div><nav class="space-y-2 border-l border-white/[0.08] pl-3.5"><a href="#key-highlights" class="block text-xs text-slate-400 hover:text-emerald-400 transition-colors leading-snug">Key Highlights</a><a href="#built-in-tailwind-css-v4-engine" class="block text-xs text-slate-400 hover:text-emerald-400 transition-colors leading-snug">Built-in Tailwind CSS v4 Engine</a><a href="#file-based-routing-structure" class="block text-xs text-slate-400 hover:text-emerald-400 transition-colors leading-snug">File-Based Routing Structure</a><a href="#static-site-generation-ssg" class="block text-xs text-slate-400 hover:text-emerald-400 transition-colors leading-snug">Static Site Generation (SSG)</a><a href="#next-steps" class="block text-xs text-slate-400 hover:text-emerald-400 transition-colors leading-snug">Next Steps</a></nav></aside></div></main><footer class="mt-auto border-t border-slate-800/60 py-6 px-6 text-center text-xs text-slate-400"><p>Froot Framework Documentation • Built with Froot SSG &amp; Preact • <a href="/llms.txt" class="text-emerald-400 hover:underline">llms.txt</a></p></footer></div><script>
+</ul></article></div><aside class="hidden xl:block w-56 shrink-0 sticky top-12 self-start py-2"><div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2"><span>On This Page</span></div><nav class="space-y-1.5 border-l border-white/[0.08] pl-3"><a href="#key-highlights" class="block text-xs transition-colors leading-snug text-slate-400 hover:text-emerald-400 font-medium">Key Highlights</a><a href="#built-in-tailwind-css-v4-engine" class="block text-xs transition-colors leading-snug text-slate-400 hover:text-emerald-400 font-medium">Built-in Tailwind CSS v4 Engine</a><a href="#css-first-tailwind-v4-configuration" class="block text-xs transition-colors leading-snug pl-3 text-slate-500 hover:text-emerald-400 text-[11px]">CSS-First Tailwind v4 Configuration</a><a href="#file-based-routing-structure" class="block text-xs transition-colors leading-snug text-slate-400 hover:text-emerald-400 font-medium">File-Based Routing Structure</a><a href="#root-layout-src-app-layout-tsx" class="block text-xs transition-colors leading-snug pl-3 text-slate-500 hover:text-emerald-400 text-[11px]">Root Layout (src/app/layout.tsx)</a><a href="#dynamic-routes-static-site-generation-src-app-docs-slug-page-tsx" class="block text-xs transition-colors leading-snug pl-3 text-slate-500 hover:text-emerald-400 text-[11px]">Dynamic Routes &amp; Static Site Generation (src/app/docs/[slug]/page.tsx)</a><a href="#static-site-generation-ssg" class="block text-xs transition-colors leading-snug text-slate-400 hover:text-emerald-400 font-medium">Static Site Generation (SSG)</a><a href="#next-steps" class="block text-xs transition-colors leading-snug text-slate-400 hover:text-emerald-400 font-medium">Next Steps</a></nav></aside></div></main><footer class="mt-auto border-t border-slate-800/60 py-6 px-6 text-center text-xs text-slate-400"><p>Froot Framework Documentation • Built with Froot SSG &amp; Preact • <a href="/llms.txt" class="text-emerald-400 hover:underline">llms.txt</a></p></footer></div><script>
           function toggleDocsSidebar() {
             const sidebar = document.getElementById('docs-sidebar');
             const backdrop = document.getElementById('docs-backdrop');

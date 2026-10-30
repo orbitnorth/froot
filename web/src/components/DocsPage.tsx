@@ -7,30 +7,35 @@ import type { DocItem } from '../data/docs-nav.js';
 import { DocsBreadcrumbs } from './DocsBreadcrumbs.js';
 import { DocsPagination } from './DocsPagination.js';
 
+export interface DocHeading {
+  id: string;
+  text: string;
+  level?: number | undefined;
+}
+
 export interface DocsPageProps {
   title: string;
   category: string;
   summary: string;
   markdownHtml: string;
+  headings?: DocHeading[] | undefined;
   prev?: DocItem | undefined;
   next?: DocItem | undefined;
 }
 
-function processMarkdownHtml(rawHtml: string = ''): { html: string; headings: Array<{ id: string; text: string }> } {
-  const headings: Array<{ id: string; text: string }> = [];
-  const safeHtml = rawHtml || '';
-
-  const html = safeHtml.replace(/<h2(.*?)>(.*?)<\/h2>/gi, (_, attrs, inner) => {
-    const text = inner.replace(/<[^>]+>/g, '').trim();
-    const id = text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-    headings.push({ id, text });
-    return `<h2 id="${id}"${attrs}>${inner}</h2>`;
-  });
-
-  return { html, headings };
+function extractHeadingsFromHtml(rawHtml: string = ''): DocHeading[] {
+  const headings: DocHeading[] = [];
+  const regex = /<h([23])[^>]*id="([^"]+)"[^>]*>(.*?)<\/h\1>/gi;
+  let match;
+  while ((match = regex.exec(rawHtml)) !== null) {
+    const level = parseInt(match[1] || '2', 10);
+    const id = match[2] || '';
+    const text = (match[3] || '').replace(/<[^>]+>/g, '').trim();
+    if (id && text) {
+      headings.push({ id, text, level });
+    }
+  }
+  return headings;
 }
 
 export function DocsPage({
@@ -38,10 +43,17 @@ export function DocsPage({
   category,
   summary,
   markdownHtml,
+  headings: explicitHeadings,
   prev,
   next,
 }: DocsPageProps) {
-  const { html, headings } = processMarkdownHtml(markdownHtml);
+  const safeHtml = markdownHtml || '';
+  const headings = explicitHeadings && explicitHeadings.length > 0
+    ? explicitHeadings
+    : extractHeadingsFromHtml(safeHtml);
+
+  // Filter TOC headings to levels 2 and 3
+  const tocHeadings = headings.filter((h) => !h.level || h.level === 2 || h.level === 3);
 
   return (
     <div class="xl:flex xl:gap-12">
@@ -58,13 +70,13 @@ export function DocsPage({
           <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
             {title}
           </h1>
-          <p class="text-base text-slate-300 leading-relaxed">{summary}</p>
+          {summary && <p class="text-base text-slate-300 leading-relaxed">{summary}</p>}
         </header>
 
         {/* Document Content (rendered from Markdown) */}
         <article
           class="prose max-w-none text-slate-300"
-          dangerouslySetInnerHTML={{ __html: html }}
+          dangerouslySetInnerHTML={{ __html: safeHtml }}
         />
 
         {/* Previous / Next Article Navigation Cards */}
@@ -72,21 +84,28 @@ export function DocsPage({
       </div>
 
       {/* Right Table of Contents Rail (Desktop Only - Next.js Style) */}
-      {headings.length > 0 && (
+      {tocHeadings.length > 0 && (
         <aside class="hidden xl:block w-56 shrink-0 sticky top-12 self-start py-2">
-          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-3">
-            On This Page
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+            <span>On This Page</span>
           </div>
-          <nav class="space-y-2 border-l border-white/[0.08] pl-3.5">
-            {headings.map((h) => (
-              <a
-                key={h.id}
-                href={`#${h.id}`}
-                class="block text-xs text-slate-400 hover:text-emerald-400 transition-colors leading-snug"
-              >
-                {h.text}
-              </a>
-            ))}
+          <nav class="space-y-1.5 border-l border-white/[0.08] pl-3">
+            {tocHeadings.map((h) => {
+              const isH3 = h.level === 3;
+              return (
+                <a
+                  key={h.id}
+                  href={`#${h.id}`}
+                  class={`block text-xs transition-colors leading-snug ${
+                    isH3
+                      ? 'pl-3 text-slate-500 hover:text-emerald-400 text-[11px]'
+                      : 'text-slate-400 hover:text-emerald-400 font-medium'
+                  }`}
+                >
+                  {h.text}
+                </a>
+              );
+            })}
           </nav>
         </aside>
       )}

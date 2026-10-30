@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 export default async function DocSlugPage({ params }: { params: { slug: string } }) {
   const slug = params.slug || 'quickstart';
-  const { frontmatter, html } = await getDoc(slug);
+  const { frontmatter, html, headings } = await getDoc(slug);
   const { prev, next } = getAdjacentDocs(slug);
 
   return (
@@ -28,6 +28,7 @@ export default async function DocSlugPage({ params }: { params: { slug: string }
       category={frontmatter['category'] || 'Documentation'}
       summary={frontmatter['summary'] || ''}
       markdownHtml={html}
+      headings={headings}
       prev={prev}
       next={next}
     />

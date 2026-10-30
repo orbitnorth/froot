@@ -9,7 +9,7 @@ export const metadata = {
 };
 
 export default async function DocsOverviewPage() {
-  const { frontmatter, html } = await getDoc('overview');
+  const { frontmatter, html, headings } = await getDoc('overview');
   const { prev, next } = getAdjacentDocs('overview');
 
   return (
@@ -18,6 +18,7 @@ export default async function DocsOverviewPage() {
       category={frontmatter['category'] || 'Getting Started'}
       summary={frontmatter['summary'] || 'Introduction to Froot Framework, design principles, and peak V8 architecture.'}
       markdownHtml={html}
+      headings={headings}
       prev={prev}
       next={next}
     />
