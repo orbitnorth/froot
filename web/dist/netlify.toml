@@ -1,3 +1,7 @@
+[build]
+  command = "pnpm run build:web"
+  publish = "web/dist"
+
 [[headers]]
   for = "/*"
   [headers.values]
