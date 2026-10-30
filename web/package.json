@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.tsx",
-    "build": "tsx src/build.ts",
-    "start": "node dist/server.js"
+    "dev": "froot-fullstack dev",
+    "build": "froot-fullstack build",
+    "start": "froot-fullstack start"
   },
   "dependencies": {
     "froot-fullstack": "^1.2.1",

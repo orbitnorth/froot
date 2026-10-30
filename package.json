@@ -109,10 +109,10 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "build:web": "tsx web/src/build.ts",
+    "build:web": "froot-fullstack build -C web",
     "test": "node --import tsx --test tests/*.test.ts",
     "prepublishOnly": "npm run build && npm run test",
-    "web": "node --experimental-strip-types web/server.ts",
+    "web": "froot-fullstack dev -C web",
     "bench": "node examples/benchmark.ts",
     "example:basic": "node examples/basic.ts",
     "example:streaming": "node examples/streaming.ts",

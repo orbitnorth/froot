@@ -4,7 +4,18 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { app } from '../web/src/app.tsx';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createFullstackApp } from '@froot/fullstack';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const webDir = path.resolve(__dirname, '../web');
+
+const { app } = await createFullstackApp({
+  cwd: webDir,
+  autoListen: false,
+  tailwind: false,
+});
 
 describe('🍏 Froot Official Website & Next.js-Style Docs App', () => {
   it('GET / should serve the landing page with top navbar', async () => {
