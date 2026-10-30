@@ -5,6 +5,7 @@
  */
 
 import { DOCS_NAV } from '../data/docs-nav.js';
+import { IconFroot } from './Icons.js';
 
 export interface DocsSidebarProps {
   currentSlug: string;
@@ -19,7 +20,9 @@ export function DocsSidebar({ currentSlug }: DocsSidebarProps) {
       {/* Sidebar Header & Back to Landing Link */}
       <div class="p-5 border-b border-slate-800/80 flex items-center justify-between">
         <a href="/" class="flex items-center gap-2.5 group">
-          <span class="text-2xl transition-transform group-hover:scale-110">🍏</span>
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 group-hover:border-emerald-500/50 group-hover:bg-emerald-500/20 transition-all">
+            <IconFroot class="w-4 h-4 text-emerald-400" />
+          </div>
           <div>
             <div class="text-base font-bold text-white tracking-tight flex items-center gap-2">
               <span>

@@ -1,0 +1,24 @@
+{
+  "name": "froot-website",
+  "version": "1.0.6",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.tsx",
+    "build": "tsx src/build.ts",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "froot-fullstack": "^1.2.1",
+    "frootjs": "^1.0.6",
+    "preact": "^11.1.0",
+    "preact-render-to-string": "^6.8.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "@types/node": "^26.6.5",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5.8.0"
+  }
+}

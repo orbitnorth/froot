@@ -7,6 +7,18 @@
 
 import { highlightCode } from '@froot/fullstack';
 import { LandingNavbar } from './LandingNavbar.js';
+import {
+  IconFroot,
+  IconBolt,
+  IconFolder,
+  IconPalette,
+  IconLink,
+  IconRadio,
+  IconGlobe,
+  IconTrophy,
+  IconFlame,
+  IconZap,
+} from './Icons.js';
 
 const INITIAL_FULLSTACK_CODE = `// src/app/page.tsx - Next.js App Router with Preact SSR & Tailwind v4
 export const metadata = {
@@ -119,36 +131,36 @@ export function LandingPage() {
             </div>
 
             {/* Live Metrics Pill Bar */}
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-md">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto p-5 rounded-2xl bg-[#090e18]/95 border border-slate-800/90 shadow-2xl shadow-black/50 backdrop-blur-md">
               <div class="p-3 text-center">
-                <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight text-emerald-400">
+                <div class="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-emerald-400">
                   124,310
                 </div>
-                <div class="text-[11px] uppercase tracking-wider text-slate-400 mt-1 font-medium">
+                <div class="text-xs uppercase tracking-wider text-slate-200 mt-1.5 font-semibold">
                   Req / Sec (Node 26)
                 </div>
               </div>
-              <div class="p-3 text-center border-l border-white/[0.06]">
+              <div class="p-3 text-center border-l border-slate-800/80">
                 <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight">
                   &lt; 25 ns
                 </div>
-                <div class="text-[11px] uppercase tracking-wider text-slate-400 mt-1 font-medium">
+                <div class="text-xs uppercase tracking-wider text-slate-200 mt-1.5 font-semibold">
                   Static Route Lookup
                 </div>
               </div>
-              <div class="p-3 text-center border-l border-white/[0.06]">
-                <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight text-emerald-400">
+              <div class="p-3 text-center border-l border-slate-800/80">
+                <div class="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-emerald-400">
                   0%
                 </div>
-                <div class="text-[11px] uppercase tracking-wider text-slate-400 mt-1 font-medium">
+                <div class="text-xs uppercase tracking-wider text-slate-200 mt-1.5 font-semibold">
                   V8 Deoptimizations
                 </div>
               </div>
-              <div class="p-3 text-center border-l border-white/[0.06]">
+              <div class="p-3 text-center border-l border-slate-800/80">
                 <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight">
                   100%
                 </div>
-                <div class="text-[11px] uppercase tracking-wider text-slate-400 mt-1 font-medium">
+                <div class="text-xs uppercase tracking-wider text-slate-200 mt-1.5 font-semibold">
                   Web Standards Native
                 </div>
               </div>
@@ -176,96 +188,102 @@ export function LandingPage() {
             {/* Bento Card 1: V8 Monomorphism */}
             <div class="glass-card rounded-2xl p-8 relative overflow-hidden flex flex-col justify-between">
               <div>
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6 text-xl">
-                  ⚡
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 mb-6">
+                  <IconBolt class="w-5 h-5 text-emerald-400" />
                 </div>
                 <h3 class="text-xl font-bold text-white mb-2">V8 Monomorphic IC Engine</h3>
                 <p class="text-sm text-slate-300 leading-relaxed">
                   Context instances and route descriptors share constant object shapes. This guarantees V8 JIT executes monomorphic inline caches without deoptimization.
                 </p>
               </div>
-              <div class="mt-6 pt-4 border-t border-white/[0.06] text-xs font-mono text-emerald-400 flex items-center gap-1.5">
-                <span>0 megamorphic call sites</span> &bull; <span>O(1) dispatch</span>
+              <div class="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap gap-2">
+                <span class="px-2.5 py-1 rounded-md text-xs font-mono font-medium text-emerald-300 bg-emerald-500/10 border border-emerald-500/25">0 megamorphic calls</span>
+                <span class="px-2.5 py-1 rounded-md text-xs font-mono font-medium text-emerald-300 bg-emerald-500/10 border border-emerald-500/25">O(1) dispatch</span>
               </div>
             </div>
 
             {/* Bento Card 2: Next.js Alternative Fullstack */}
             <div class="glass-card rounded-2xl p-8 relative overflow-hidden flex flex-col justify-between">
               <div>
-                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-6 text-xl">
-                  📂
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400 mb-6">
+                  <IconFolder class="w-5 h-5 text-cyan-400" />
                 </div>
                 <h3 class="text-xl font-bold text-white mb-2">Fullstack App Router</h3>
                 <p class="text-sm text-slate-300 leading-relaxed">
                   Next.js App Router conventions with <code>src/app</code>, hierarchical nested layouts, dynamic parameter segments <code>[slug]</code>, and SSG prerendering.
                 </p>
               </div>
-              <div class="mt-6 pt-4 border-t border-white/[0.06] text-xs font-mono text-cyan-400 flex items-center gap-1.5">
-                <span>Preact SSR</span> &bull; <span>Static Site Export</span>
+              <div class="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap gap-2">
+                <span class="px-2.5 py-1 rounded-md text-xs font-mono font-medium text-cyan-300 bg-cyan-500/10 border border-cyan-500/25">Preact SSR</span>
+                <span class="px-2.5 py-1 rounded-md text-xs font-mono font-medium text-cyan-300 bg-cyan-500/10 border border-cyan-500/25">Static Site Export</span>
               </div>
             </div>
 
             {/* Bento Card 3: Tailwind v4 Native */}
             <div class="glass-card rounded-2xl p-8 relative overflow-hidden flex flex-col justify-between">
               <div>
-                <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 text-xl">
-                  🎨
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400 mb-6">
+                  <IconPalette class="w-5 h-5 text-indigo-400" />
                 </div>
                 <h3 class="text-xl font-bold text-white mb-2">Tailwind CSS v4 Native</h3>
                 <p class="text-sm text-slate-300 leading-relaxed">
                   Real CSS-first configuration with <code>@theme</code> and zero runtime CDN scripts. Fullstack router automatically compiles and hot-reloads CSS.
                 </p>
               </div>
-              <div class="mt-6 pt-4 border-t border-white/[0.06] text-xs font-mono text-indigo-400 flex items-center gap-1.5">
-                <span>No CDN tags</span> &bull; <span>Auto dev watcher</span>
+              <div class="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap gap-2">
+                <span class="px-2.5 py-1 rounded-md text-xs font-mono font-medium text-indigo-300 bg-indigo-500/10 border border-indigo-500/25">Zero CDN tags</span>
+                <span class="px-2.5 py-1 rounded-md text-xs font-mono font-medium text-indigo-300 bg-indigo-500/10 border border-indigo-500/25">Auto dev watcher</span>
               </div>
             </div>
 
             {/* Bento Card 4: Type-Safe RPC */}
             <div class="glass-card rounded-2xl p-8 relative overflow-hidden flex flex-col justify-between">
               <div>
-                <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-6 text-xl">
-                  🔗
+                <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center text-purple-400 mb-6">
+                  <IconLink class="w-5 h-5 text-purple-400" />
                 </div>
                 <h3 class="text-xl font-bold text-white mb-2">Zero-Codegen RPC</h3>
                 <p class="text-sm text-slate-300 leading-relaxed">
                   Export your server type directly to frontend clients: <code>frootClient&lt;AppType&gt;()</code>. Full end-to-end type safety without build steps or code generation.
                 </p>
               </div>
-              <div class="mt-6 pt-4 border-t border-white/[0.06] text-xs font-mono text-purple-400 flex items-center gap-1.5">
-                <span>Auto-inferred schemas</span> &bull; <span>Zero overhead</span>
+              <div class="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap gap-2">
+                <span class="px-2.5 py-1 rounded-md text-xs font-mono font-medium text-purple-300 bg-purple-500/10 border border-purple-500/25">Auto-inferred RPC</span>
+                <span class="px-2.5 py-1 rounded-md text-xs font-mono font-medium text-purple-300 bg-purple-500/10 border border-purple-500/25">Zero build step</span>
               </div>
             </div>
 
             {/* Bento Card 5: Streaming & WebSockets */}
             <div class="glass-card rounded-2xl p-8 relative overflow-hidden flex flex-col justify-between">
               <div>
-                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-6 text-xl">
-                  📡
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400 mb-6">
+                  <IconRadio class="w-5 h-5 text-amber-400" />
                 </div>
                 <h3 class="text-xl font-bold text-white mb-2">Streaming &amp; WebSockets</h3>
                 <p class="text-sm text-slate-300 leading-relaxed">
                   First-class Server-Sent Events (SSE), LLM token streaming with <code>streamText()</code>, and cross-platform WebSocket rooms and message broadcasting.
                 </p>
               </div>
-              <div class="mt-6 pt-4 border-t border-white/[0.06] text-xs font-mono text-amber-400 flex items-center gap-1.5">
-                <span>Backpressure aware</span> &bull; <span>AI Agent ready</span>
+              <div class="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap gap-2">
+                <span class="px-2.5 py-1 rounded-md text-xs font-mono font-medium text-amber-300 bg-amber-500/10 border border-amber-500/25">Backpressure aware</span>
+                <span class="px-2.5 py-1 rounded-md text-xs font-mono font-medium text-amber-300 bg-amber-500/10 border border-amber-500/25">AI token streaming</span>
               </div>
             </div>
 
             {/* Bento Card 6: Multi-Runtime & Multi-Core */}
             <div class="glass-card rounded-2xl p-8 relative overflow-hidden flex flex-col justify-between">
               <div>
-                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-6 text-xl">
-                  🌐
+                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center text-rose-400 mb-6">
+                  <IconGlobe class="w-5 h-5 text-rose-400" />
                 </div>
                 <h3 class="text-xl font-bold text-white mb-2">Multi-Runtime &amp; Cluster</h3>
                 <p class="text-sm text-slate-300 leading-relaxed">
                   Write once, deploy anywhere: Node.js, Bun, Deno, Cloudflare Workers, and AWS Lambda. Built-in cluster clustering saturates every available CPU core.
                 </p>
               </div>
-              <div class="mt-6 pt-4 border-t border-white/[0.06] text-xs font-mono text-rose-400 flex items-center gap-1.5">
-                <span>Zero adapters needed</span> &bull; <span>Auto CPU scaling</span>
+              <div class="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap gap-2">
+                <span class="px-2.5 py-1 rounded-md text-xs font-mono font-medium text-rose-300 bg-rose-500/10 border border-rose-500/25">Multi-Runtime</span>
+                <span class="px-2.5 py-1 rounded-md text-xs font-mono font-medium text-rose-300 bg-rose-500/10 border border-rose-500/25">Multi-Core Cluster</span>
               </div>
             </div>
           </div>
@@ -291,13 +309,16 @@ export function LandingPage() {
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
               {/* Winner Card: Froot */}
               <div class="lg:col-span-2 glass-card rounded-2xl p-8 border-emerald-500/30 shadow-2xl shadow-emerald-950/40 relative">
-                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold mb-6">
-                  <span>👑 1ST PLACE WINNER</span>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold mb-6">
+                  <IconTrophy class="w-3.5 h-3.5 text-emerald-400" />
+                  <span>1ST PLACE BENCHMARK</span>
                 </div>
 
                 <div class="flex items-center justify-between mb-4">
                   <div class="flex items-center gap-3">
-                    <span class="text-3xl">🍏</span>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                      <IconFroot class="w-5 h-5 text-emerald-400" />
+                    </div>
                     <div>
                       <h3 class="text-2xl font-bold text-white">Froot Framework</h3>
                       <span class="text-xs text-emerald-400 font-mono">Monomorphic V8 + Radix Dispatch</span>
@@ -307,7 +328,7 @@ export function LandingPage() {
                     <div class="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono">
                       124,310
                     </div>
-                    <div class="text-xs text-slate-400 uppercase tracking-wider font-medium">req / sec</div>
+                    <div class="text-xs text-slate-300 uppercase tracking-wider font-semibold">req / sec</div>
                   </div>
                 </div>
 
@@ -315,18 +336,18 @@ export function LandingPage() {
                   <div class="bench-bar-fill bench-fill-froot" style="width: 100%" />
                 </div>
 
-                <div class="grid grid-cols-3 gap-3 pt-6 border-t border-white/[0.08] text-center">
+                <div class="grid grid-cols-3 gap-3 pt-6 border-t border-slate-800/80 text-center">
                   <div>
                     <div class="text-sm font-bold text-white font-mono">0.81 ms</div>
-                    <div class="text-[11px] text-slate-400 uppercase tracking-wider mt-0.5">Avg Latency</div>
+                    <div class="text-xs text-slate-300 uppercase tracking-wider mt-0.5 font-medium">Avg Latency</div>
                   </div>
-                  <div class="border-x border-white/[0.08]">
+                  <div class="border-x border-slate-800/80">
                     <div class="text-sm font-bold text-white font-mono">0 allocs</div>
-                    <div class="text-[11px] text-slate-400 uppercase tracking-wider mt-0.5">Hot-path churn</div>
+                    <div class="text-xs text-slate-300 uppercase tracking-wider mt-0.5 font-medium">Hot-path churn</div>
                   </div>
                   <div>
                     <div class="text-sm font-bold text-white font-mono">1.6x faster</div>
-                    <div class="text-[11px] text-slate-400 uppercase tracking-wider mt-0.5">vs Fastify</div>
+                    <div class="text-xs text-slate-300 uppercase tracking-wider mt-0.5 font-medium">vs Fastify</div>
                   </div>
                 </div>
               </div>
@@ -336,20 +357,20 @@ export function LandingPage() {
                 <div>
                   <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-2">
-                      <span class="text-2xl">🔥</span>
+                      <IconFlame class="w-5 h-5 text-orange-400" />
                       <h4 class="text-lg font-bold text-white">Hono</h4>
                     </div>
                     <span class="text-xs text-slate-400 font-mono">Node.js</span>
                   </div>
                   <div class="text-2xl font-extrabold text-orange-400 font-mono mb-1">
-                    82,100 <span class="text-xs text-slate-400 font-sans font-normal">req/s</span>
+                    82,100 <span class="text-xs text-slate-300 font-sans font-normal">req/s</span>
                   </div>
                   <div class="bench-bar-track mb-4">
                     <div class="bench-bar-fill bench-fill-hono" style="width: 66%" />
                   </div>
                 </div>
-                <div class="text-xs text-slate-400 pt-3 border-t border-white/[0.06] flex justify-between">
-                  <span>Latency: <strong>1.21ms</strong></span>
+                <div class="text-xs text-slate-300 pt-3 border-t border-white/[0.06] flex justify-between font-medium">
+                  <span>Latency: <strong class="text-white">1.21ms</strong></span>
                   <span>Radix tree</span>
                 </div>
               </div>
@@ -359,20 +380,20 @@ export function LandingPage() {
                 <div>
                   <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-2">
-                      <span class="text-2xl">⚡</span>
+                      <IconZap class="w-5 h-5 text-blue-400" />
                       <h4 class="text-lg font-bold text-white">Fastify 5</h4>
                     </div>
                     <span class="text-xs text-slate-400 font-mono">Find-My-Way</span>
                   </div>
                   <div class="text-2xl font-extrabold text-slate-200 font-mono mb-1">
-                    74,200 <span class="text-xs text-slate-400 font-sans font-normal">req/s</span>
+                    74,200 <span class="text-xs text-slate-300 font-sans font-normal">req/s</span>
                   </div>
                   <div class="bench-bar-track mb-4">
                     <div class="bench-bar-fill bench-fill-fastify" style="width: 60%" />
                   </div>
                 </div>
-                <div class="text-xs text-slate-400 pt-3 border-t border-white/[0.06] flex justify-between">
-                  <span>Latency: <strong>1.34ms</strong></span>
+                <div class="text-xs text-slate-300 pt-3 border-t border-white/[0.06] flex justify-between font-medium">
+                  <span>Latency: <strong class="text-white">1.34ms</strong></span>
                   <span>Async Hooks</span>
                 </div>
               </div>
@@ -525,7 +546,9 @@ export function LandingPage() {
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start justify-between gap-10">
           <div>
             <div class="flex items-center gap-2 mb-3">
-              <span class="text-2xl">🍏</span>
+              <div class="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <IconFroot class="w-4 h-4 text-emerald-400" />
+              </div>
               <span class="text-base font-bold text-white tracking-tight">Froot Framework</span>
             </div>
             <p class="text-xs text-slate-400 max-w-sm leading-relaxed mb-4">

@@ -1,3 +1,7 @@
+packages:
+  - '.'
+  - 'web'
+
 minimumReleaseAgeExclude:
   - froot-fullstack@1.2.1
   - frootjs@1.0.6

@@ -4,6 +4,8 @@
  * (Note: Never displayed on documentation pages!)
  */
 
+import { IconFroot } from './Icons.js';
+
 export function LandingNavbar() {
   return (
     <header
@@ -13,7 +15,9 @@ export function LandingNavbar() {
       <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Brand */}
         <a href="/" class="flex items-center gap-2.5 group">
-          <span class="text-2xl transition-transform group-hover:scale-110">🍏</span>
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 group-hover:border-emerald-500/50 group-hover:bg-emerald-500/20 transition-all">
+            <IconFroot class="w-4 h-4 text-emerald-400" />
+          </div>
           <div class="flex items-center gap-2">
             <span class="text-base font-bold text-white tracking-tight">
               Froot<span class="text-emerald-400">.ts</span>

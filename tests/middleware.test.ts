@@ -291,7 +291,7 @@ describe('Built-in Batteries & Middleware', () => {
   });
 
   it('should serve static files securely with ETag and reject path traversal attacks', async () => {
-    const webDir = path.resolve(__dirname, '../web');
+    const webDir = path.resolve(__dirname, '../web/dist');
     const app = new Froot();
 
     app.use('/*', serveStatic({

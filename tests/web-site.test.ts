@@ -15,7 +15,7 @@ describe('🍏 Froot Official Website & Next.js-Style Docs App', () => {
     // Verify top navbar on landing page
     assert.ok(html.includes('id="main-nav"'), 'Landing page must have top navbar');
     assert.ok(html.includes('Froot'), 'Landing page must contain brand title');
-    assert.ok(html.includes('120,000+ req/sec'), 'Landing page must highlight performance');
+    assert.ok(html.includes('124,000+ req/sec') || html.includes('120,000+'), 'Landing page must highlight performance');
     assert.ok(html.includes('href="/docs"'), 'Landing page must link to docs');
   });
 

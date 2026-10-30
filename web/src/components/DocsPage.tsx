@@ -16,10 +16,11 @@ export interface DocsPageProps {
   next?: DocItem | undefined;
 }
 
-function processMarkdownHtml(rawHtml: string): { html: string; headings: Array<{ id: string; text: string }> } {
+function processMarkdownHtml(rawHtml: string = ''): { html: string; headings: Array<{ id: string; text: string }> } {
   const headings: Array<{ id: string; text: string }> = [];
+  const safeHtml = rawHtml || '';
 
-  const html = rawHtml.replace(/<h2(.*?)>(.*?)<\/h2>/gi, (_, attrs, inner) => {
+  const html = safeHtml.replace(/<h2(.*?)>(.*?)<\/h2>/gi, (_, attrs, inner) => {
     const text = inner.replace(/<[^>]+>/g, '').trim();
     const id = text
       .toLowerCase()
