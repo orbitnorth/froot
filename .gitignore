@@ -3,7 +3,8 @@ node_modules/
 .pnpm-store/
 
 # Build Output
-dist/
+/dist/
+packages/*/dist/
 build/
 *.tsbuildinfo
 
