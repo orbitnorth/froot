@@ -4,9 +4,13 @@ node_modules/
 
 # Build Output
 /dist/
+web/dist/
 packages/*/dist/
 build/
 *.tsbuildinfo
+.froot/
+web/.froot/
+site/.froot/
 
 # Logs & Runtime State
 *.log

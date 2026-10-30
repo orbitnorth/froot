@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import * as path from 'node:path';
+import * as fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Froot } from 'frootjs';
 import { cors, security, timing, logger, etag, bodyLimit, bearerAuth, rateLimiter, serveStatic } from 'frootjs/middleware';
@@ -291,7 +292,9 @@ describe('Built-in Batteries & Middleware', () => {
   });
 
   it('should serve static files securely with ETag and reject path traversal attacks', async () => {
-    const webDir = path.resolve(__dirname, '../web/dist');
+    const webFroot = path.resolve(__dirname, '../web/.froot');
+    const webDist = path.resolve(__dirname, '../web/dist');
+    const webDir = fs.existsSync(webFroot) ? webFroot : webDist;
     const app = new Froot();
 
     app.use('/*', serveStatic({
