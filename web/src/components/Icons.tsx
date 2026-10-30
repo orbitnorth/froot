@@ -93,3 +93,4 @@ export function IconZap({ class: className = 'w-5 h-5 text-blue-400' }: { class?
     </svg>
   );
 }
+

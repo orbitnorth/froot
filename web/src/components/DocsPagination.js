@@ -1,7 +1,0 @@
-import { jsx as _jsx, jsxs as _jsxs } from "preact/jsx-runtime";
-export function DocsPagination({ prev, next }) {
-    if (!prev && !next)
-        return null;
-    return (_jsx("div", { class: "mt-16 pt-8 border-t border-slate-800/80", children: _jsxs("div", { class: "grid grid-cols-1 sm:grid-cols-2 gap-4", children: [prev ? (_jsxs("a", { href: prev.slug, class: "group block p-4 rounded-xl border border-slate-800 bg-[#070b13] hover:border-emerald-500/50 hover:bg-slate-900/50 transition-all", children: [_jsxs("div", { class: "text-xs text-slate-400 group-hover:text-emerald-400 flex items-center gap-1 transition-colors", children: [_jsx("span", { children: "\u2190" }), " ", _jsx("span", { children: "Previous" })] }), _jsx("div", { class: "text-sm font-semibold text-white mt-1 group-hover:text-emerald-300 transition-colors", children: prev.title })] })) : (_jsx("div", {})), next ? (_jsxs("a", { href: next.slug, class: "group block p-4 rounded-xl border border-slate-800 bg-[#070b13] hover:border-emerald-500/50 hover:bg-slate-900/50 text-right transition-all sm:col-start-2", children: [_jsxs("div", { class: "text-xs text-slate-400 group-hover:text-emerald-400 flex items-center justify-end gap-1 transition-colors", children: [_jsx("span", { children: "Next" }), " ", _jsx("span", { children: "\u2192" })] }), _jsx("div", { class: "text-sm font-semibold text-white mt-1 group-hover:text-emerald-300 transition-colors", children: next.title })] })) : null] }) }));
-}
-//# sourceMappingURL=DocsPagination.js.map

@@ -32,3 +32,4 @@ if (isDirectEntry && process.env['NODE_ENV'] !== 'test' && !process.env['FROOT_B
     console.log(`Froot server listening at http://localhost:${PORT}`);
   });
 }
+

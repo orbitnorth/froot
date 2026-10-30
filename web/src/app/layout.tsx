@@ -41,3 +41,4 @@ export default function RootLayout({ children, metadata }: RootLayoutProps) {
     </html>
   );
 }
+

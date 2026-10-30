@@ -23,7 +23,7 @@ export function DocsLayout({ currentPath, currentSlug, children }: DocsLayoutPro
       <div
         id="docs-backdrop"
         class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"
-        onclick="toggleDocsSidebar()"
+        {...{ onclick: 'toggleDocsSidebar()' }}
       />
 
       {/* LEFT SIDEBAR: NO NAVBAR ON DOCS! Navigation lives here */}
@@ -36,7 +36,7 @@ export function DocsLayout({ currentPath, currentSlug, children }: DocsLayoutPro
           <button
             type="button"
             class="flex items-center gap-2 text-slate-300 hover:text-white"
-            onclick="toggleDocsSidebar()"
+            {...{ onclick: 'toggleDocsSidebar()' }}
           >
             <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />

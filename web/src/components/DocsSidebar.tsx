@@ -43,7 +43,7 @@ export function DocsSidebar({ currentSlug }: DocsSidebarProps) {
           type="button"
           aria-label="Close navigation"
           class="md:hidden text-slate-400 hover:text-white p-1"
-          onclick="toggleDocsSidebar()"
+          {...{ onclick: 'toggleDocsSidebar()' }}
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -71,7 +71,7 @@ export function DocsSidebar({ currentSlug }: DocsSidebarProps) {
             id="docs-search-input"
             type="text"
             placeholder="Search docs..."
-            oninput="filterDocsNav(this.value)"
+            {...{ oninput: 'filterDocsNav(this.value)' }}
             class="w-full bg-slate-900/90 text-xs text-slate-200 placeholder-slate-500 pl-9 pr-9 py-2 rounded-lg border border-slate-800 focus:outline-none focus:border-emerald-500/60 transition-colors"
           />
           <span class="absolute right-2.5 top-2 text-[10px] font-mono text-slate-500 border border-slate-800 bg-slate-950 px-1.5 py-0.5 rounded">

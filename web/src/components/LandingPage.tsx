@@ -96,7 +96,7 @@ export function LandingPage() {
               <div
                 class="command-pill cursor-pointer group"
                 id="copy-install-box"
-                onclick="copyInstallCmd()"
+                {...{ onclick: 'copyInstallCmd()' }}
                 title="Click to copy command"
               >
                 <span class="text-emerald-400 font-mono text-sm select-none">$</span>
@@ -501,7 +501,7 @@ export function LandingPage() {
                   type="button"
                   class="rpc-action-btn active px-4 py-2 rounded-lg text-xs font-mono bg-white/[0.04] border border-white/[0.1] hover:border-emerald-500/50 hover:bg-white/[0.08] text-slate-200 transition-all"
                   id="btn-rpc-get-users"
-                  onclick="runRpcDemo('getUsers')"
+                  {...{ onclick: "runRpcDemo('getUsers')" }}
                 >
                   client.api.users.get()
                 </button>
@@ -509,7 +509,7 @@ export function LandingPage() {
                   type="button"
                   class="rpc-action-btn px-4 py-2 rounded-lg text-xs font-mono bg-white/[0.04] border border-white/[0.1] hover:border-emerald-500/50 hover:bg-white/[0.08] text-slate-200 transition-all"
                   id="btn-rpc-create-user"
-                  onclick="runRpcDemo('createUser')"
+                  {...{ onclick: "runRpcDemo('createUser')" }}
                 >
                   client.api.users.post(&#123; name: 'Alice' &#125;)
                 </button>
@@ -517,7 +517,7 @@ export function LandingPage() {
                   type="button"
                   class="rpc-action-btn px-4 py-2 rounded-lg text-xs font-mono bg-white/[0.04] border border-white/[0.1] hover:border-emerald-500/50 hover:bg-white/[0.08] text-slate-200 transition-all"
                   id="btn-rpc-health"
-                  onclick="runRpcDemo('health')"
+                  {...{ onclick: "runRpcDemo('health')" }}
                 >
                   client.health.get()
                 </button>
