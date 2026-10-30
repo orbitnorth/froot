@@ -109,10 +109,10 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "build:web": "frootkit build -C web",
+    "build:web": "frootkit build -C ../froot-website",
     "test": "node --import tsx --test tests/*.test.ts",
     "prepublishOnly": "npm run build && npm run test",
-    "web": "frootkit dev -C web",
+    "web": "frootkit dev -C ../froot-website",
     "bench": "node examples/benchmark.ts",
     "example:basic": "node examples/basic.ts",
     "example:streaming": "node examples/streaming.ts",

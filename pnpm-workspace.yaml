@@ -1,6 +1,6 @@
 packages:
   - '.'
-  - 'web'
+  - '../froot-website'
   - '../frootkit'
   - '../create-frootkit'
 

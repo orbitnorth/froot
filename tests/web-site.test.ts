@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createFrootKit } from 'frootkit';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const webDir = path.resolve(__dirname, '../web');
+const webDir = path.resolve(__dirname, '../../froot-website');
 
 const { app } = await createFrootKit({
   cwd: webDir,

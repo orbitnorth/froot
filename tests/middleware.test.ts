@@ -292,9 +292,9 @@ describe('Built-in Batteries & Middleware', () => {
   });
 
   it('should serve static files securely with ETag and reject path traversal attacks', async () => {
+    const websiteFroot = path.resolve(__dirname, '../../froot-website/.froot');
     const webFroot = path.resolve(__dirname, '../web/.froot');
-    const webDist = path.resolve(__dirname, '../web/dist');
-    const webDir = fs.existsSync(webFroot) ? webFroot : webDist;
+    const webDir = fs.existsSync(websiteFroot) ? websiteFroot : (fs.existsSync(webFroot) ? webFroot : path.resolve(__dirname, '../web/dist'));
     const app = new Froot();
 
     app.use('/*', serveStatic({
