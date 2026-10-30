@@ -101,6 +101,17 @@ export function DocsLayout({ currentPath, currentSlug, children }: DocsLayoutPro
               setTimeout(() => { btn.innerText = orig; }, 2000);
             });
           }
+
+          document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+              e.preventDefault();
+              const search = document.getElementById('docs-search-input');
+              if (search) {
+                search.focus();
+                search.select();
+              }
+            }
+          });
         `,
         }}
       />

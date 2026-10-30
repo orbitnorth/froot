@@ -26,9 +26,15 @@ Cross-runtime WebSockets with room broadcast capabilities via `createHub()`. Inc
 
 Self-documenting REST API with auto-generated OpenAPI 3.1 schema definitions and modern interactive Scalar API reference at `/docs`.
 
-## 6. Fullstack JSX & SSR (`-t fullstack`)
+## 6. Fullstack Preact & Tailwind v4 (`-t fullstack`)
 
-Server-side rendered components using Froot's native zero-dependency JSX engine with typed layouts and zero client-side JavaScript overhead.
+High-performance Next.js App Router alternative powered by `@froot/fullstack`, Preact SSR, and native Tailwind CSS v4. Features:
+- File-based routing automatically discovered from `src/app`
+- Hierarchical nested layout system with layout isolation support
+- Bracket dynamic routes (`src/app/docs/[slug]/page.tsx`)
+- Built-in Tailwind CSS v4 pipeline with CSS-first `@theme` configuration
+- Static Site Generation (SSG) with `generateStaticParams()`
+- 3kB Preact runtime delivering sub-millisecond SSR with zero React baggage
 
 ## 7. Minimal Starter (`-t minimal`)
 

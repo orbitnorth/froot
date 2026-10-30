@@ -103,9 +103,30 @@ describe('App routes', () => {
 });
 \`\`\`
 
-### 5. Critical Rules for AI Agents
+### 5. Fullstack App Router & Tailwind CSS v4 (`froot-fullstack`)
+Froot includes a high-performance Next.js alternative powered by Preact and Tailwind CSS v4:
+\`\`\`ts
+import { Froot } from 'frootjs';
+import { createAppRouter } from 'froot-fullstack';
+
+const app = new Froot();
+const router = createAppRouter(app);
+
+// Built-in Tailwind CSS v4 compilation & auto hot-reloading
+await router.enableTailwind({
+  input: './src/styles.css',
+  output: './dist/styles.css',
+});
+
+// Next.js App Router-style file-based routing with Preact SSR
+await router.discover('./src/app');
+
+app.listen(3000);
+\`\`\`
+
+### 6. Critical Rules for AI Agents
 1. **Never use Express patterns:** There is no \`res.send()\`, \`res.status().json()\`, or \`req.body\`.
 2. **Never call \`next(err)\`:** Throw errors directly or use \`app.onError((err, c) => ...)\`.
-3. **Always use \`frootjs\`:** The npm package is \`frootjs\`, NOT \`create-froot\` or obsolete names.
+3. **Always use \`frootjs\` and \`froot-fullstack\`:** Core framework is \`frootjs\`, fullstack engine is \`froot-fullstack\`.
 4. **Scaffolding:** Always generate with \`AGENT.md\` and \`.cursorrules\` which are added by default by \`create-frootjs\`.
 

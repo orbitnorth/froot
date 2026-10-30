@@ -23,3 +23,31 @@ summary: Introduction to Froot Framework, design principles, and peak V8 archite
 | In-Memory Testing | Needs Port Socket | Needs Inject Mock | app.fetch | **Native app.fetch(Request)** |
 | OpenAPI 3.1 & UI | Manual Plugins | Schema Plugin | Zod OpenAPI | **Built-in Scalar & Swagger** |
 
+## Quick Example in 10 Seconds
+
+```typescript
+import { Froot } from 'frootjs';
+
+const app = new Froot();
+
+// Tier 1 Static Route (O(1) Hash Map)
+app.get('/', (c) => c.text('Hello Froot! 🍏'));
+
+// Tier 2 Dynamic Route
+app.get('/api/users/:id', (c) => {
+  return c.json({ id: c.param('id'), active: true });
+});
+
+// Start High-Performance Server
+app.listen(3000, () => {
+  console.log('🍏 Server running on http://localhost:3000');
+});
+```
+
+## Next Steps
+
+- [Quickstart & CLI](/docs/quickstart): Create a new app in seconds with `create-frootjs`.
+- [Fullstack & Tailwind v4](/docs/fullstack): Next.js App Router alternative with Preact SSR.
+- [Architecture Templates](/docs/templates): Explore MVC, Modular, Streaming, and WebSocket setups.
+
+
