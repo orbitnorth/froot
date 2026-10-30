@@ -1,6 +1,6 @@
 {
   "name": "froot-fullstack",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "High-performance Next.js alternative for Froot — Preact SSR, nested layouts, dynamic routes, SSG, and Markdown engine",
   "type": "module",
   "main": "./dist/index.js",
@@ -44,7 +44,7 @@
   "author": "OrbitNorth LLC",
   "license": "MIT",
   "dependencies": {
-    "frootjs": "link:../froot-framework",
+    "frootjs": "^1.0.6",
     "preact": "^11.1.0",
     "preact-render-to-string": "^6.8.2"
   },
