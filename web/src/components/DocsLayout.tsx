@@ -9,11 +9,14 @@ import type { ComponentChildren } from 'preact';
 import { DocsSidebar } from './DocsSidebar.js';
 
 export interface DocsLayoutProps {
-  currentSlug: string;
+  currentPath?: string | undefined;
+  currentSlug?: string | undefined;
   children: ComponentChildren;
 }
 
-export function DocsLayout({ currentSlug, children }: DocsLayoutProps) {
+export function DocsLayout({ currentPath, currentSlug, children }: DocsLayoutProps) {
+  const activeSlug = currentSlug || currentPath || '/docs';
+
   return (
     <div class="flex min-h-screen">
       {/* Mobile Drawer Overlay */}
@@ -24,7 +27,7 @@ export function DocsLayout({ currentSlug, children }: DocsLayoutProps) {
       />
 
       {/* LEFT SIDEBAR: NO NAVBAR ON DOCS! Navigation lives here */}
-      <DocsSidebar currentSlug={currentSlug} />
+      <DocsSidebar currentSlug={activeSlug} />
 
       {/* RIGHT MAIN CONTENT AREA */}
       <div class="flex-1 min-w-0 md:ml-72 lg:ml-80 flex flex-col min-h-screen">

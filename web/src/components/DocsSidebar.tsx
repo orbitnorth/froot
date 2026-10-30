@@ -86,10 +86,14 @@ export function DocsSidebar({ currentSlug }: DocsSidebarProps) {
             </div>
             <ul class="space-y-1">
               {cat.items.map((item) => {
-                const isActive = item.slug === currentSlug;
+                const isActive =
+                  item.slug === currentSlug ||
+                  (item.slug === '/docs' &&
+                    (currentSlug === '/docs' || currentSlug === '/docs/overview' || currentSlug === ''));
+
                 const activeClass = isActive
-                  ? 'bg-emerald-500/10 text-emerald-400 font-semibold border-l-2 border-emerald-400 pl-2.5'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60';
+                  ? 'bg-emerald-500/10 text-emerald-400 font-semibold border-l-2 border-emerald-400 pl-2.5 shadow-sm shadow-emerald-950/40'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]';
 
                 return (
                   <li key={item.slug}>

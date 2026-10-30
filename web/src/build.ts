@@ -18,7 +18,6 @@ async function build(): Promise<void> {
   const result = await router.exportStatic({
     outDir,
     copyAssets: [
-      { from: path.join(webDir, 'styles.css') },
       { from: path.join(webDir, 'app.js') },
       { from: path.join(webDir, 'llms.txt') },
       { from: path.join(webDir, 'llms-full.txt') },

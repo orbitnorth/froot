@@ -4,6 +4,47 @@
 
 // 1. Multi-Runtime Code Snippets
 const RUNTIME_SNIPPETS = {
+  fullstack: `// src/app/page.tsx - Next.js App Router with Preact SSR & Tailwind v4
+export const metadata = {
+  title: 'Froot Fullstack — Next.js Alternative',
+  description: '124,000+ req/sec fullstack web engine with Preact SSR and file-based routing',
+};
+
+export default function HomePage() {
+  return (
+    <div class="max-w-4xl mx-auto px-6 py-20 text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400 mb-6">
+        Next.js Alternative &bull; Preact SSR &bull; Tailwind CSS v4
+      </div>
+      <h1 class="text-5xl font-extrabold text-white tracking-tight mb-4">
+        Extreme Performance <span class="text-emerald-400">Fullstack Engine</span>
+      </h1>
+      <p class="text-slate-300 text-lg max-w-2xl mx-auto">
+        Sub-millisecond JSX SSR with zero runtime CDN scripts and O(1) route dispatch.
+      </p>
+    </div>
+  );
+}`,
+
+  tailwind: `/* src/styles.css - Modern Tailwind CSS v4 (No CDN Scripts!) */
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d1fae5;
+  --color-brand-400: #34d399;
+  --color-brand-500: #10b981;
+  --color-brand-600: #059669;
+  --color-brand-900: #064e3b;
+}
+
+:root {
+  color-scheme: dark;
+}`,
+
   node: `import { Froot } from 'frootjs';
 
 const app = new Froot();
@@ -295,7 +336,7 @@ function setupRuntimeTabs() {
   });
 
   // Initial tab
-  renderTab('node');
+  renderTab('fullstack');
 }
 
 // 4. Copy Install Command

@@ -30,42 +30,7 @@ export function RootLayout({
         <meta property="og:description" content={description} />
         <meta property="og:type" content="website" />
 
-        {/* Tailwind CSS CDN */}
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-            tailwind.config = {
-              darkMode: 'class',
-              theme: {
-                extend: {
-                  colors: {
-                    froot: {
-                      50: '#ecfdf5',
-                      100: '#d1fae5',
-                      400: '#34d399',
-                      500: '#10b981',
-                      600: '#059669',
-                      900: '#064e3b',
-                    },
-                    dark: {
-                      800: '#0f172a',
-                      900: '#090d16',
-                      950: '#050811',
-                    }
-                  },
-                  fontFamily: {
-                    sans: ['Inter', 'system-ui', 'sans-serif'],
-                    mono: ['JetBrains Mono', 'monospace'],
-                  }
-                }
-              }
-            };
-          `,
-          }}
-        />
-
-        {/* Fonts */}
+        {/* Preconnect Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
@@ -73,9 +38,10 @@ export function RootLayout({
           rel="stylesheet"
         />
 
+        {/* Real Tailwind CSS v4 Stylesheet */}
         <link rel="stylesheet" href="/styles.css" />
       </head>
-      <body class="bg-[#090d16] text-slate-100 font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-300 min-h-screen">
+      <body class="bg-[#030712] text-slate-100 font-sans antialiased selection:bg-emerald-500/25 selection:text-emerald-200 min-h-screen">
         {children}
       </body>
     </html>

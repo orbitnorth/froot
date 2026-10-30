@@ -23,6 +23,12 @@ const contentDocsDir = path.resolve(__dirname, '../content/docs');
 export const app = new Froot();
 export const router = createAppRouter(app);
 
+// Enable built-in Tailwind CSS v4 pipeline (watches in dev, serves /styles.css)
+await router.enableTailwind({
+  input: path.resolve(__dirname, 'styles.css'),
+  output: path.resolve(__dirname, '../dist/styles.css'),
+});
+
 // 1. Next.js-style Layout for Docs (/docs/*)
 // CRITICAL: NO TOP NAVBAR! Navigation is in the left sidebar.
 router.layout('/docs', ({ children, currentPath }) => {

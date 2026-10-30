@@ -31,6 +31,12 @@ export const DOCS_NAV: DocCategory[] = [
         summary: 'Create your first Froot project in seconds with create-frootjs.',
       },
       {
+        id: 'fullstack',
+        slug: '/docs/fullstack',
+        title: 'Fullstack & Tailwind v4',
+        summary: 'Next.js App Router alternative with Preact SSR, nested layouts, and built-in Tailwind CSS v4.',
+      },
+      {
         id: 'templates',
         slug: '/docs/templates',
         title: 'Architecture Templates',
