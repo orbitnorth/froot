@@ -35,7 +35,7 @@ app.get('/api/users/:userId', (c) => {
 
 // Launch Node.js native engine with TCP socket tuning
 app.listen(3000, () => {
-  console.log('🍏 Froot server listening on http://localhost:3000');
+  console.log('[server] Froot listening on http://localhost:3000');
 });`;
 
 const INITIAL_RPC_JSON = JSON.stringify(
@@ -127,36 +127,36 @@ export function LandingPage() {
             </div>
 
             {/* Live Metrics Pill Bar */}
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto p-5 rounded-2xl bg-[#090e18]/95 border border-slate-800/90 shadow-2xl shadow-black/50 backdrop-blur-md">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto p-5 rounded-2xl bg-[#0b1324] border border-slate-700/80 shadow-2xl shadow-black/50 backdrop-blur-md">
               <div class="p-3 text-center">
                 <div class="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-emerald-400">
                   124,310
                 </div>
-                <div class="text-xs uppercase tracking-wider text-slate-200 mt-1.5 font-semibold">
+                <div class="text-xs uppercase tracking-wider text-slate-300 mt-1.5 font-semibold" style="color: #cbd5e1;">
                   Req / Sec (Node 26)
                 </div>
               </div>
-              <div class="p-3 text-center border-l border-slate-800/80">
+              <div class="p-3 text-center border-l border-slate-700/80">
                 <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight">
                   &lt; 25 ns
                 </div>
-                <div class="text-xs uppercase tracking-wider text-slate-200 mt-1.5 font-semibold">
+                <div class="text-xs uppercase tracking-wider text-slate-300 mt-1.5 font-semibold" style="color: #cbd5e1;">
                   Static Route Lookup
                 </div>
               </div>
-              <div class="p-3 text-center border-l border-slate-800/80">
+              <div class="p-3 text-center border-l border-slate-700/80">
                 <div class="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-emerald-400">
                   0%
                 </div>
-                <div class="text-xs uppercase tracking-wider text-slate-200 mt-1.5 font-semibold">
+                <div class="text-xs uppercase tracking-wider text-slate-300 mt-1.5 font-semibold" style="color: #cbd5e1;">
                   V8 Deoptimizations
                 </div>
               </div>
-              <div class="p-3 text-center border-l border-slate-800/80">
+              <div class="p-3 text-center border-l border-slate-700/80">
                 <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight">
                   100%
                 </div>
-                <div class="text-xs uppercase tracking-wider text-slate-200 mt-1.5 font-semibold">
+                <div class="text-xs uppercase tracking-wider text-slate-300 mt-1.5 font-semibold" style="color: #cbd5e1;">
                   Web Standards Native
                 </div>
               </div>
@@ -619,7 +619,7 @@ app.get('/api/users/:userId', (c) => {
 
 // Launch Node.js native engine with TCP socket tuning
 app.listen(3000, () => {
-  console.log('🍏 Froot server listening on http://localhost:3000');
+  console.log('[server] Froot listening on http://localhost:3000');
 });\`,
 
   cloudflare: \`import { Froot } from 'frootjs';
