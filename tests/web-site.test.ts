@@ -39,7 +39,7 @@ describe('🍏 Froot Official Website & Next.js-Style Docs App', () => {
     assert.ok(!html.includes('id="main-nav"'), 'Docs layout must NOT contain top navbar');
     assert.ok(html.includes('id="docs-sidebar"'), 'Docs must retain left sidebar');
     assert.ok(html.includes('Quickstart &amp; CLI') || html.includes('Quickstart & CLI'));
-    assert.ok(html.includes('npm create frootjs@latest'));
+    assert.ok(html.replace(/<[^>]+>/g, '').includes('npm create frootjs@latest'));
     assert.ok(html.includes('href="/docs/templates"'), 'Pagination next card should link to templates');
   });
 
