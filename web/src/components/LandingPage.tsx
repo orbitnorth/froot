@@ -5,7 +5,7 @@
  * feature bento grid, syntax-highlighted code showcase, and zero runtime CDN dependencies.
  */
 
-import { highlightCode } from '@froot/fullstack';
+import { highlightCode } from 'frootkit';
 import { LandingNavbar } from './LandingNavbar.js';
 import {
   IconFroot,
@@ -591,7 +591,7 @@ export function LandingPage() {
               <ul class="space-y-2 text-slate-400">
                 <li><a href="https://github.com/orbitnorth/froot" target="_blank" rel="noreferrer" class="hover:text-emerald-400 transition-colors">GitHub Repository</a></li>
                 <li><a href="https://www.npmjs.com/package/frootjs" target="_blank" rel="noreferrer" class="hover:text-emerald-400 transition-colors">npm: frootjs</a></li>
-                <li><a href="https://www.npmjs.com/package/froot-fullstack" target="_blank" rel="noreferrer" class="hover:text-emerald-400 transition-colors">npm: froot-fullstack</a></li>
+                <li><a href="https://www.npmjs.com/package/frootkit" target="_blank" rel="noreferrer" class="hover:text-emerald-400 transition-colors">npm: frootkit</a></li>
                 <li><a href="https://www.npmjs.com/package/create-frootjs" target="_blank" rel="noreferrer" class="hover:text-emerald-400 transition-colors">npm: create-frootjs</a></li>
               </ul>
             </div>

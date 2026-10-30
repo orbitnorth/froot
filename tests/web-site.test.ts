@@ -6,12 +6,12 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createFullstackApp } from '@froot/fullstack';
+import { createFrootKit } from 'frootkit';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const webDir = path.resolve(__dirname, '../web');
 
-const { app } = await createFullstackApp({
+const { app } = await createFrootKit({
   cwd: webDir,
   autoListen: false,
   tailwind: false,

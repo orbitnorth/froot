@@ -11,9 +11,6 @@ importers:
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.13.0(jiti@2.7.0))
-      '@froot/fullstack':
-        specifier: npm:froot-fullstack@^1.2.1
-        version: froot-fullstack@1.2.1
       '@tailwindcss/cli':
         specifier: ^4.3.3
         version: 4.3.3
@@ -23,9 +20,9 @@ importers:
       eslint:
         specifier: ^10.13.0
         version: 10.13.0(jiti@2.7.0)
-      froot-fullstack:
-        specifier: ^1.2.1
-        version: 1.2.1
+      frootkit:
+        specifier: link:../frootkit
+        version: link:../frootkit
       preact:
         specifier: ^11.1.0
         version: 11.1.0(preact-render-to-string@6.8.2)
@@ -45,14 +42,48 @@ importers:
         specifier: ^8.72.0
         version: 8.72.0(eslint@10.13.0(jiti@2.7.0))(typescript@5.9.3)
 
-  web:
+  ../create-frootkit:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.0
+        version: 22.20.5
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+
+  ../frootkit:
     dependencies:
-      froot-fullstack:
-        specifier: ^1.2.1
-        version: 1.2.1
       frootjs:
         specifier: ^1.0.6
         version: 1.0.6(preact-render-to-string@6.8.2)(preact@11.1.0)
+      preact:
+        specifier: ^11.1.0
+        version: 11.1.0(preact-render-to-string@6.8.2)
+      preact-render-to-string:
+        specifier: ^6.8.2
+        version: 6.8.2(preact@11.1.0)
+    devDependencies:
+      '@tailwindcss/cli':
+        specifier: ^4.3.3
+        version: 4.3.3
+      '@types/node':
+        specifier: ^26.6.5
+        version: 26.6.5
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+
+  web:
+    dependencies:
+      frootjs:
+        specifier: ^1.0.6
+        version: 1.0.6(preact-render-to-string@6.8.2)(preact@11.1.0)
+      frootkit:
+        specifier: link:../../frootkit
+        version: link:../../frootkit
       preact:
         specifier: ^11.1.0
         version: 11.1.0(preact-render-to-string@6.8.2)
@@ -514,6 +545,9 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
+  '@types/node@22.20.5':
+    resolution: {integrity: sha512-U2+DNr+wSjpsTS/wZGYHq7GcwfuSmKiKvoPvK22zwTlRhU91yOniN4qRR5KhIjvif7ysw/dz/hKmfDH0Ris4aA==}
+
   '@types/node@26.6.5':
     resolution: {integrity: sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==}
 
@@ -718,9 +752,6 @@ packages:
 
   flatted@3.4.4:
     resolution: {integrity: sha512-5+ybhBZANEJxaH3X5evAFatUxLfEHSr7n6kYJ+1Qd0mUqr4eu9gIf6GDbWHf8RJijHrjjO8G+la14SlL2SeS1Q==}
-
-  froot-fullstack@1.2.1:
-    resolution: {integrity: sha512-nqpuOTIX446ps3n8sa4udOHVEwsjv+T1D0kpXXGS/Pp8RaJEoybhMhiGZl/w9MFZZKsu8+aGS0E39a7aFcBVew==}
 
   frootjs@1.0.6:
     resolution: {integrity: sha512-PcOprpQiITJtJnFdwy7H3eb+oLyVCxnOL7Xb1ATKJEWGulri2atkPtERwlggYRxSTzAfSm/dB7bJDBDBYuFcDA==}
@@ -1015,6 +1046,9 @@ packages:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  undici-types@6.21.0:
+    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
@@ -1341,6 +1375,10 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
+  '@types/node@22.20.5':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/node@26.6.5':
     dependencies:
       undici-types: 8.9.0
@@ -1616,12 +1654,6 @@ snapshots:
 
   flatted@3.4.4: {}
 
-  froot-fullstack@1.2.1:
-    dependencies:
-      frootjs: 1.0.6(preact-render-to-string@6.8.2)(preact@11.1.0)
-      preact: 11.1.0(preact-render-to-string@6.8.2)
-      preact-render-to-string: 6.8.2(preact@11.1.0)
-
   frootjs@1.0.6(preact-render-to-string@6.8.2)(preact@11.1.0):
     optionalDependencies:
       preact: 11.1.0(preact-render-to-string@6.8.2)
@@ -1841,6 +1873,8 @@ snapshots:
       - supports-color
 
   typescript@5.9.3: {}
+
+  undici-types@6.21.0: {}
 
   undici-types@8.9.0: {}
 

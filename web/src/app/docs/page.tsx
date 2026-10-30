@@ -1,5 +1,5 @@
 /** @jsxImportSource preact */
-import { getDoc } from '@froot/fullstack';
+import { getDoc } from 'frootkit';
 import { DocsPage } from '../../components/DocsPage.js';
 import { getAdjacentDocs } from '../../data/docs-nav.js';
 

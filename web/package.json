@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "froot-fullstack dev",
-    "build": "froot-fullstack build",
-    "start": "froot-fullstack start"
+    "dev": "frootkit dev",
+    "build": "frootkit build",
+    "start": "frootkit start"
   },
   "dependencies": {
-    "froot-fullstack": "^1.2.1",
+    "frootkit": "link:../../frootkit",
     "frootjs": "^1.0.6",
     "preact": "^11.1.0",
     "preact-render-to-string": "^6.8.2"
