@@ -244,6 +244,14 @@ export class Froot<TEnv extends Env = BlankEnv> {
     return this.on('PATCH', path, ...(args as [Handler<P, TEnv>]));
   }
 
+  public options<P extends string>(path: P, ...args: (RouteOptions | RouteDocOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+    return this.on('OPTIONS', path, ...(args as [Handler<P, TEnv>]));
+  }
+
+  public head<P extends string>(path: P, ...args: (RouteOptions | RouteDocOptions | MiddlewareHandler<P, TEnv> | Handler<P, TEnv>)[]): this {
+    return this.on('HEAD', path, ...(args as [Handler<P, TEnv>]));
+  }
+
   /**
    * Mount a sub-application under a path prefix.
    */
