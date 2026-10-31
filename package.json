@@ -1,6 +1,6 @@
 {
   "name": "frootjs",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "High-performance, ultra-flexible, TypeScript-native web framework",
   "type": "module",
   "main": "./dist/index.js",
@@ -21,6 +21,10 @@
     "./adapters/node": {
       "types": "./dist/adapters/node.d.ts",
       "import": "./dist/adapters/node.js"
+    },
+    "./adapters/uws": {
+      "types": "./dist/adapters/uws.d.ts",
+      "import": "./dist/adapters/uws.js"
     },
     "./adapters/aws-lambda": {
       "types": "./dist/adapters/aws-lambda.d.ts",

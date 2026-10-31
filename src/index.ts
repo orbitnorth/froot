@@ -19,6 +19,7 @@ export {
 } from './core/date-ticker.js';
 
 // Multi-Runtime Adapters & Utilities
+export { serveUWS, type UWSServerOptions } from './adapters/uws.js';
 export { handle as handleAwsLambda } from './adapters/aws-lambda.js';
 export { getRuntime, type Runtime } from './utils/runtime.js';
 
