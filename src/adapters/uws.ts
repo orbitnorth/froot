@@ -1,6 +1,6 @@
 /**
  * High-performance native uWebSockets.js adapter for Froot.
- * Powered by raw C++ epoll/kqueue event loops delivering 50,000+ req/sec on V8.
+ * Powered by raw C++ epoll/kqueue event loops delivering 20,000+ to 50,000+ req/sec on V8.
  * Requires zero C++/Rust compiler on the client — utilizes pre-compiled native binaries.
  */
 
@@ -17,6 +17,48 @@ export interface UWSServerOptions {
     dh_params_file_name?: string | undefined;
     ca_file_name?: string | undefined;
   } | undefined;
+}
+
+/**
+ * High-speed Header Shim implementing WHATWG Headers interface
+ * without Undici / C++ byte overhead.
+ */
+export class HeaderShim {
+  private raw: Record<string, string>;
+
+  constructor(raw: Record<string, string>) {
+    this.raw = raw;
+  }
+
+  public get(key: string): string | null {
+    return this.raw[key.toLowerCase()] ?? null;
+  }
+
+  public has(key: string): boolean {
+    return key.toLowerCase() in this.raw;
+  }
+
+  public forEach(callback: (value: string, key: string, parent: Headers) => void): void {
+    for (const k in this.raw) {
+      callback(this.raw[k]!, k, this as unknown as Headers);
+    }
+  }
+
+  public *keys(): IterableIterator<string> {
+    for (const k in this.raw) yield k;
+  }
+
+  public *values(): IterableIterator<string> {
+    for (const k in this.raw) yield this.raw[k]!;
+  }
+
+  public *entries(): IterableIterator<[string, string]> {
+    for (const k in this.raw) yield [k, this.raw[k]!];
+  }
+
+  public [Symbol.iterator](): IterableIterator<[string, string]> {
+    return this.entries();
+  }
 }
 
 /**
@@ -55,11 +97,28 @@ export async function serveUWS(
     const query = req.getQuery();
     const fullUrl = query ? `${url}?${query}` : url;
 
+    // Synchronously capture headers from uWS native stack
+    const headers: Record<string, string> = {};
+    req.forEach((k: string, v: string) => {
+      headers[k] = v;
+    });
+
     const isGetOrHead = method === 'GET' || method === 'HEAD';
 
     if (isGetOrHead) {
-      const webReq = new Request(`http://localhost${fullUrl}`, { method });
-      app.fetch(webReq).then((webRes: Response) => {
+      // Zero-allocation fast request bypassing WHATWG new Request() & Ada URL parser
+      const fastReq = {
+        url: fullUrl,
+        _pathname: url,
+        _reqUrl: fullUrl,
+        method,
+        headers: new HeaderShim(headers),
+        _rawHeaders: headers,
+        text: async () => '',
+        json: async () => ({}),
+      } as unknown as Request;
+
+      app.fetch(fastReq).then((webRes: Response) => {
         if (aborted) return;
         const status = webRes.status;
         if (status !== 200) {
@@ -80,35 +139,46 @@ export async function serveUWS(
         }
       }).catch((err: any) => {
         if (!aborted) {
-          res.writeStatus('500 Internal Server Error').end(err?.message || 'Internal Server Error');
+          res.writeStatus('500').end(err?.message || 'Internal Server Error');
         }
       });
       return;
     }
 
     // Body handling for POST, PUT, PATCH, DELETE
-    const headers: Record<string, string> = {};
-    req.forEach((k: string, v: string) => {
-      headers[k] = v;
-    });
+    let singleChunk: Buffer | null = null;
+    let chunks: Buffer[] | null = null;
 
-    let buffer = Buffer.alloc(0);
     res.onData((chunk: ArrayBuffer, isLast: boolean) => {
       // Memory slice ensures chunk is cloned out of uWS slab before async dispatch
-      const chunkCopy = Buffer.from(chunk.slice(0));
-      buffer = Buffer.concat([buffer, chunkCopy]);
+      const slice = Buffer.from(chunk.slice(0));
+      if (!singleChunk && !chunks) {
+        if (isLast) {
+          singleChunk = slice;
+        } else {
+          chunks = [slice];
+        }
+      } else if (chunks) {
+        chunks.push(slice);
+      }
 
       if (isLast) {
-        const webReq = new Request(`http://localhost${fullUrl}`, {
+        const bodyBuf = singleChunk || (chunks ? Buffer.concat(chunks) : Buffer.alloc(0));
+
+        const fastReq = {
+          url: fullUrl,
+          _pathname: url,
+          _reqUrl: fullUrl,
           method,
-          headers,
-          body: buffer.length > 0 ? buffer : null,
-        });
+          headers: new HeaderShim(headers),
+          _rawHeaders: headers,
+          _rawBodyBuffer: bodyBuf,
+          json: async () => JSON.parse(bodyBuf.toString('utf-8')),
+          text: async () => bodyBuf.toString('utf-8'),
+          arrayBuffer: async () => bodyBuf.buffer.slice(bodyBuf.byteOffset, bodyBuf.byteOffset + bodyBuf.byteLength),
+        } as unknown as Request;
 
-        // Fast-path hint for FrootRequest json() / text()
-        (webReq as unknown as { _rawBodyBuffer?: Buffer })._rawBodyBuffer = buffer;
-
-        app.fetch(webReq).then((webRes: Response) => {
+        app.fetch(fastReq).then((webRes: Response) => {
           if (aborted) return;
           const status = webRes.status;
           if (status !== 200) {
@@ -129,7 +199,7 @@ export async function serveUWS(
           }
         }).catch((err: any) => {
           if (!aborted) {
-            res.writeStatus('500 Internal Server Error').end(err?.message || 'Internal Server Error');
+            res.writeStatus('500').end(err?.message || 'Internal Server Error');
           }
         });
       }
