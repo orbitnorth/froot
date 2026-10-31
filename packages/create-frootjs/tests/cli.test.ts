@@ -21,18 +21,17 @@ describe('create-frootjs Templates & Scaffolder', () => {
     }
   });
 
-  it('provides all 7 required architectural templates', () => {
+  it('provides all 6 required architectural templates', () => {
     const expectedTemplates = [
       'mvc',
       'modular',
       'streaming',
       'websocket',
       'openapi',
-      'fullstack',
       'minimal',
     ];
 
-    assert.equal(TEMPLATE_LIST.length, 7);
+    assert.equal(TEMPLATE_LIST.length, 6);
     for (const id of expectedTemplates) {
       const t = getTemplate(id);
       assert.ok(t, `Template ${id} must be registered`);
@@ -156,22 +155,6 @@ describe('create-frootjs Templates & Scaffolder', () => {
     assert.ok(serverFile.includes('app.openapi'));
   });
 
-  it('scaffolds fullstack JSX template onto disk', async () => {
-    const targetDir = path.join(tempBaseDir, 'test-fullstack');
-    const template = getTemplate('fullstack')!;
-
-    const result = await scaffoldProject({
-      targetDir,
-      projectName: 'test-fullstack',
-      template,
-      pkgManager: 'pnpm',
-      gitInit: false,
-      installDeps: false,
-    });
-
-    const layout = await fs.stat(path.join(targetDir, 'src/components/Layout.tsx'));
-    assert.ok(layout.isFile());
-  });
 
   it('scaffolds minimal template onto disk', async () => {
     const targetDir = path.join(tempBaseDir, 'test-minimal');
@@ -479,7 +462,7 @@ describe('create-frootjs Templates & Scaffolder', () => {
 
     assert.equal(schema.name, 'create-frootjs');
     assert.ok(Array.isArray(schema.templates));
-    assert.equal(schema.templates.length, 7);
+    assert.equal(schema.templates.length, 6);
     assert.ok(schema.options.template);
     assert.ok(schema.options.database);
     assert.ok(schema.recipes.enterpriseApi);

@@ -20,7 +20,7 @@ import {
 import { TEMPLATES, TEMPLATE_LIST, getTemplate } from './templates/index.js';
 import { scaffoldProject } from './generator.js';
 
-const VERSION = '1.0.8';
+const VERSION = '1.0.15';
 
 interface ParsedArgs {
   targetDir?: string;
@@ -117,7 +117,6 @@ function printUsage(): void {
                              • streaming    SSE & token streaming
                              • websocket    Real-time pub/sub rooms
                              • openapi      REST API & Scalar docs
-                             • fullstack    Server-rendered JSX views
                              • minimal      Lean single-file starter
     --pm <manager>           Package manager: pnpm | npm | yarn | bun
     --db <orm>               Database ORM: none | drizzle | prisma
@@ -150,7 +149,7 @@ function printAgentSchema(): void {
     options: {
       template: {
         flag: '-t, --template <name>',
-        choices: ['mvc', 'modular', 'streaming', 'websocket', 'openapi', 'fullstack', 'minimal'],
+        choices: ['mvc', 'modular', 'streaming', 'websocket', 'openapi', 'minimal'],
         default: 'mvc',
         description: 'Architectural pattern of the scaffolded application',
       },
@@ -197,7 +196,6 @@ function printAgentSchema(): void {
       restApiScalarDocs: 'npm create frootjs my-app -t openapi --db prisma --linter eslint --test node -y',
       realtimeWebSocket: 'npm create frootjs my-app -t websocket --linter biome --test vitest -y',
       aiStreamingSSE: 'npm create frootjs my-app -t streaming --linter biome --test vitest -y',
-      fullstackJsx: 'npm create frootjs my-app -t fullstack --linter biome --test vitest -y',
       minimalStarter: 'npm create frootjs my-app -t minimal --docker --test vitest -y',
     },
   };
@@ -271,6 +269,13 @@ async function main(): Promise<void> {
   }
 
   // 2. Select Template
+  if (args.template?.toLowerCase() === 'fullstack') {
+    printError('The "fullstack" template has been promoted to its own dedicated engine and CLI: FrootKit!');
+    console.log(`\nTo create a fullstack App Router SSR project, run:`);
+    console.log(`  ${c.cyan}npm create frootkit@latest ${targetDir || 'my-app'}${c.reset}\n`);
+    process.exit(1);
+  }
+
   let selectedTemplate = args.template ? getTemplate(args.template) : undefined;
 
   if (args.template && !selectedTemplate) {
